@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "darwin-arm64"]
+}
+
+datasource db {
+  // provider = "sqlite"
+  provider = "mysql"
+
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+enum GoalType {
+  CUSTOM
+  DOCUMENT
+}
+
+model Goal {
+  id        String   @id @default(cuid())
+  completed Boolean  @default(false)
+  type      GoalType @default(CUSTOM)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+
+  title         String
+  guideMarkdown String? @db.LongText
+
+  children Link[] @relation("parent")
+  parents  Link[] @relation("child")
+}
+
+model Link {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lexoRankIndex String
+  parent        Goal     @relation("parent", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId      String
+  child         Goal     @relation("child", fields: [childId], references: [id], onDelete: Cascade)
+  childId       String
+
+  @@unique([parentId, childId])
+  @@index([parentId, lexoRankIndex], name: "parent_lexoRankIndex")
+  @@index([childId, lexoRankIndex], name: "child_lexoRankIndex")
+}

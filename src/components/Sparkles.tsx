@@ -1,0 +1,134 @@
+import { type FC, useState } from "react";
+import { type ReactNode, type CSSProperties } from "react";
+import { useRandomInterval } from "../hooks/useRandomInterval";
+import { motion, type MotionStyle } from "framer-motion";
+import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
+
+const DEFAULT_COLOR = "#ffef93";
+
+const random = (min: number, max: number) =>
+  Math.floor(Math.random() * (max - min)) + min;
+
+const generateSparkle = (color: string) => {
+  const sparkle = {
+    id: String(random(10000, 99999)),
+    createdAt: Date.now(),
+    color,
+    size: random(10, 20),
+    style: {
+      top: random(0, 100).toString() + "%",
+      left: random(0, 100).toString() + "%",
+    },
+  };
+  return sparkle;
+};
+
+interface SparklesProps {
+  color?: string;
+  children: ReactNode;
+  enabled?: boolean;
+}
+
+export const Sparkles: FC<SparklesProps> = ({
+  color = DEFAULT_COLOR,
+  enabled = true,
+  children,
+  ...delegated
+}) => {
+  const [sparkles, setSparkles] = useState(() => {
+    return Array.from({ length: 3 }).map(() => generateSparkle(color));
+  });
+  const prefersReducedMotion = usePrefersReducedMotion();
+  useRandomInterval(
+    () => {
+      const now = Date.now();
+      const nextSparkles = sparkles.filter((sp) => {
+        const delta = now - sp.createdAt;
+        return delta < 750;
+      });
+
+      if (enabled) {
+        const sparkle = generateSparkle(color);
+        nextSparkles.push(sparkle);
+      }
+
+      setSparkles(nextSparkles);
+    },
+    prefersReducedMotion ? null : 500,
+    prefersReducedMotion ? null : 750
+  );
+
+  return (
+    <span className="relative inline-block" {...delegated}>
+      {sparkles.map((sparkle) => (
+        <Sparkle
+          key={sparkle.id}
+          color={sparkle.color}
+          size={sparkle.size}
+          style={sparkle.style}
+        />
+      ))}
+      <strong className="relative z-10 font-bold">{children}</strong>
+    </span>
+  );
+};
+
+interface SparkleProps {
+  color: string;
+  size: number;
+  style: CSSProperties;
+}
+
+const Sparkle: FC<SparkleProps> = ({ color, size, style }) => {
+  const sparkleVariants = {
+    initial: { opacity: 0, scale: 0 },
+    animate: { opacity: 1, scale: 1 },
+    exit: { opacity: 0, scale: 0 },
+  };
+
+  const sparkleTransition = {
+    duration: 0.7,
+    ease: "easeInOut",
+  };
+
+  const sparkleRotate = {
+    rotate: [0, 180],
+  };
+
+  const motionStyle: MotionStyle = {
+    position: "absolute",
+    width: size,
+    height: size,
+    translateX: "-50%",
+    translateY: "-50%",
+    fill: color,
+    ...style,
+  };
+
+  return (
+    <motion.span
+      style={motionStyle}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={sparkleVariants}
+      transition={sparkleTransition}
+    >
+      <motion.svg
+        width={size}
+        height={size}
+        viewBox="0 0 68 68"
+        fill="none"
+        animate={sparkleRotate}
+        transition={{ rotate: { duration: 1, ease: "linear", loop: Infinity } }}
+      >
+        <path
+          d="M26.5 25.5C19.0043 33.3697 0 34 0 34C0 34 19.1013 35.3684 26.5 43.5C33.234 50.901 34 68 34 68C34 68 36.9884 50.7065 44.5 43.5C51.6431 36.647 68 34 68 34C68 34 51.6947 32.0939 44.5 25.5C36.5605 18.2235 34 0 34 0C34 0 33.6591 17.9837 26.5 25.5Z"
+          fill={color}
+          stroke="#FFF176" // Use a lighter yellow for the stroke color
+          strokeWidth="2" // Add a strokeWidth
+        />
+      </motion.svg>
+    </motion.span>
+  );
+};
