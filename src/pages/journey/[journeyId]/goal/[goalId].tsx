@@ -406,7 +406,7 @@ function ChatBot() {
       </div>
       <div className="h-2"></div>
       <div className="flex flex-wrap items-center gap-2">
-        <Button
+        {/* <Button
           size="small"
           onClick={() => {
             setQuery(
@@ -423,7 +423,7 @@ function ChatBot() {
           }}
         >
           {"Don't know where to start"}
-        </Button>
+        </Button> */}
         <Button
           size="small"
           onClick={() => {
@@ -440,7 +440,7 @@ function ChatBot() {
             );
           }}
         >
-          {"Cannot comprehend the guide"}
+          {"I don't understand what the guide is saying"}
         </Button>
       </div>
       <div className="h-2"></div>
@@ -772,9 +772,9 @@ const GoalPage: NextPage = () => {
               <ReactTextareaAutosize
                 value={goal?.title}
                 className={clsx({
-                  "mr-2 w-full resize-none rounded-sm border border-transparent bg-transparent outline-none transition":
+                  "mr-2 w-full resize-none rounded-sm border border-transparent bg-transparent outline-none transition hover:border-gray-400":
                     true,
-                  "focus:border-gray-400": true,
+                  "focus:border-black": true,
                 })}
                 onChange={(e) => {
                   setGoal((prev) => {
