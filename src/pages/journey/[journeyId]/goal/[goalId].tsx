@@ -34,7 +34,12 @@ import { Textarea } from "../../../../components/base/Textarea";
 import { useChatCompletion } from "../../../../hooks/useChatCompletion";
 import { useTextSelection } from "@mantine/hooks";
 import { Button } from "../../../../components/base/Button";
-import { goalAtom, newGuideAtom, loadingAiAtom } from "../../../../utils/jotai";
+import {
+  goalAtom,
+  newGuideAtom,
+  loadingAiAtom,
+  newPrereqAtom,
+} from "../../../../utils/jotai";
 import { parseDiff, Diff, Hunk } from "react-diff-view";
 import { applyPatch as diffApplyPatch } from "diff";
 import { Sparkles } from "../../../../components/Sparkles";
@@ -47,6 +52,7 @@ import {
 } from "../../../../components/base/Popover";
 import { usePrevious } from "../../../../hooks/usePrevious";
 import { useRouter } from "next/router";
+import { toast } from "react-hot-toast";
 
 type ChatBotSubmitEvent = CustomEvent<{ query: string }>;
 
@@ -323,6 +329,8 @@ const DiffComponent: React.FC<DiffComponentProps> = ({ patchString }) => {
 function ChatBot() {
   const journeyId = useQueryParam("journeyId", "string");
   const [goal, setGoal] = useAtom(goalAtom);
+
+  const [newPrereq, setNewPrereq] = useAtom(newPrereqAtom);
 
   const [query, setQuery] = useState<string>("");
 
@@ -707,25 +715,8 @@ const GoalPage: NextPage = () => {
   const utils = api.useContext();
 
   const { mutateAsync: updateGoal } = api.goal.update.useMutation({
-    async onMutate({ id, title, guideMarkdown }) {
-      await utils.goal.get.cancel({ id });
-      const previousGoal = utils.goal.get.getData({ id });
-      utils.goal.get.setData({ id }, (goal) => {
-        if (!goal) return goal;
-        return {
-          ...goal,
-          updatedAt: new Date(),
-          title: title ?? goal.title,
-          guideMarkdown: guideMarkdown ?? goal.guideMarkdown,
-        };
-      });
-      return { previousGoal };
-    },
-    onError(err, newPost, ctx) {
-      utils.goal.get.setData({ id: newPost.id }, ctx?.previousGoal);
-    },
-    onSettled() {
-      utils.goal.get.invalidate({ id: goalId ?? "" }).catch(handleError);
+    onSuccess: (goal) => {
+      toast.success("Saved!");
     },
   });
   const [goal, setGoal] = useAtom(goalAtom);
@@ -733,7 +724,7 @@ const GoalPage: NextPage = () => {
   const queryOutput = api.goal.get.useQuery(
     { id: goalId ?? "" },
     {
-      enabled: !loadingAi,
+      // enabled: !loadingAi,
       refetchOnWindowFocus: false,
     }
   );

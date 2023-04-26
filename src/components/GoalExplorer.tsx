@@ -180,7 +180,7 @@ function RenderGoalItem(props: RenderGoalItemProps) {
     [links, updateLexoRankIndex]
   );
 
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
 
   const [hovering, setHovering] = useState(false);
 
