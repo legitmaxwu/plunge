@@ -33,6 +33,8 @@ model Goal {
 
   children Link[] @relation("parent")
   parents  Link[] @relation("child")
+
+  journeys Journey[]
 }
 
 model Link {
@@ -48,4 +50,14 @@ model Link {
   @@unique([parentId, childId])
   @@index([parentId, lexoRankIndex], name: "parent_lexoRankIndex")
   @@index([childId, lexoRankIndex], name: "child_lexoRankIndex")
+}
+
+model Journey {
+  id     String @id @default(cuid())
+  goalId String
+  userId String
+
+  goal Goal @relation(fields: [goalId], references: [id])
+
+  @@index([goalId, userId], name: "goal_userId")
 }

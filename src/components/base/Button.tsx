@@ -26,7 +26,7 @@ export const Button = React.forwardRef(
         ["bg-black/5 cursor-not-allowed border-transparent pointer-events-none"]:
           disabled,
         ["py-1.5 px-4"]: size === "medium",
-        ["text-xs py-0.5 px-1"]: size === "small",
+        ["text-xs py-0.5 px-2"]: size === "small",
       },
       className
     );

@@ -38,18 +38,20 @@ This is another paragraph.
 
 Separate each goal with TWO newlines. Ensure proper formatting communication.
 
-For patchfile creation, use this format:
+For patchfile creation, first state the contents of the exact line you are trying to modify. Then, output the patchfile in Unified Diff Format:
 
 \`\`\`patchfile
---- article/a
-+++ article/b
-@@ -1,3 +1,3 @@
--This is a paragraph.
-+This is a paragraph. It has been modified.
- This is another paragraph, which has not been modified.
+--- original.txt
++++ modified.txt
+@@ -7,1 +7,4 @@
+-{content}
++Added line
++Added another line
++Added yet another line
++Added a fourth line
 \`\`\`
 
-The guide article is provided in the second User message. Each line of the article is formatted as {line_number}|{content}. Only {content} should be considered as part of the article. Patchfiles should act on the "article" string contents. If you include a patchfile, do not also include what the guide looks like after the patchfile is applied. Make sure the patchfile works!!!
+The guide article is provided in the second User message, formatted as {line_number}҂{content}. Only {content} should be considered part of the original string. Begin your patchfile at the nearest heading. Double-check the patchfile for errors before submitting. MAINTAIN THE ORIGINAL FORMATTING of the guide article in your patchfile!!!
 `.trim();
 
 const handler = async (req: NextRequest): Promise<Response> => {
@@ -76,9 +78,9 @@ const handler = async (req: NextRequest): Promise<Response> => {
       },
       {
         role: "user",
-        content: `${article
+        content: `Guide article:\n\n${article
           .split("\n")
-          .map((line, idx) => `${idx + 1}|${line}`)
+          .map((line, idx) => `${idx + 1}҂${line}`)
           .join("\n")}`,
       },
       {

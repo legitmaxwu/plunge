@@ -3,12 +3,7 @@
  * This is especially useful for Docker builds.
  */
 !process.env.SKIP_ENV_VALIDATION && (await import("./src/env.mjs"));
-import removeImports from "next-remove-imports";
-
-const removeImportsFun = removeImports({
-  // test: /node_modules([\s\S]*?)\.(tsx|ts|js|mjs|jsx)$/,
-  // matchImports: "\\.(less|css|scss|sass|styl)$"
-});
+import { next } from "million/compiler";
 
 /** @type {import("next").NextConfig} */
 const config = {
@@ -25,4 +20,4 @@ const config = {
     defaultLocale: "en",
   },
 };
-export default removeImportsFun(config);
+export default next(config);

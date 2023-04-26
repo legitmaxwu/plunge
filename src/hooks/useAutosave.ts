@@ -10,6 +10,7 @@ import {
   type UseTRPCMutationResult,
   type UseTRPCQueryResult,
 } from "@trpc/react-query/shared";
+import equal from "fast-deep-equal";
 
 type UseAutoSaveInput<TData> = {
   queryOutput: UseTRPCQueryResult<TData, any>;
@@ -17,11 +18,13 @@ type UseAutoSaveInput<TData> = {
   data: TData;
   setData: Dispatch<SetStateAction<TData>>;
   saveDebounce?: number;
-  shouldSave?: (prev: TData, next: TData) => boolean;
+  shouldSave?: (prev: TData | null, next: TData | null) => boolean;
 };
 
 // useAutoSave.ts (continued)
-export const useAutoSave = <TData extends { updatedAt: Date } | null>({
+export const useAutoSave = <
+  TData extends { updatedAt: Date; id: string } | null
+>({
   queryOutput,
   saveFunction,
   data,
@@ -40,14 +43,17 @@ export const useAutoSave = <TData extends { updatedAt: Date } | null>({
 }: UseAutoSaveInput<TData>) => {
   const { data: remoteData, refetch } = queryOutput;
 
-  const [loadingAi, setLoadingAi] = useAtom(loadingAiAtom);
   useEffect(() => {
     if (remoteData) {
-      if (!data || remoteData.updatedAt.getTime() > data.updatedAt.getTime()) {
-        setData(remoteData);
+      if (
+        remoteData.id === data?.id &&
+        remoteData.updatedAt.getTime() < (data?.updatedAt.getTime() ?? 0)
+      ) {
+        return;
       }
+      setData(remoteData);
     }
-  }, [data, remoteData, setData]);
+  }, [data?.id, data?.updatedAt, remoteData, setData]);
 
   // Debounce the save function
   const debouncedSave = useMemo(
@@ -58,23 +64,13 @@ export const useAutoSave = <TData extends { updatedAt: Date } | null>({
     [saveDebounce, saveFunction]
   );
 
-  const dataJson = useMemo(() => JSON.stringify(data), [data]);
-  const prevDataJson = usePrevious(dataJson);
+  const prevData = usePrevious(data);
 
   useEffect(() => {
-    if (dataJson === prevDataJson) return;
-    // if (loadingAi) return;
+    if (equal(data, prevData)) return;
 
-    if (data && remoteData && shouldSave(remoteData, data)) {
+    if (shouldSave(remoteData ?? null, data)) {
       debouncedSave(data);
     }
-  }, [
-    data,
-    dataJson,
-    debouncedSave,
-    loadingAi,
-    prevDataJson,
-    remoteData,
-    shouldSave,
-  ]);
+  }, [data, debouncedSave, prevData, remoteData, shouldSave]);
 };

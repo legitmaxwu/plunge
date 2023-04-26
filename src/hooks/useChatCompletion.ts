@@ -1,15 +1,18 @@
 import { useAuth } from "@clerk/nextjs";
 import { useAtom } from "jotai";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { loadingAiAtom } from "../utils/jotai";
-import { usePrevious } from "./usePrevious";
+
+interface ChatCompletionOptions {
+  abortController?: AbortController;
+}
 
 type UseChatCompletionHook = (
   apiEndpoint: string,
   handleNewToken: (token: string) => void,
   onComplete?: () => void
 ) => {
-  initiateChatCompletion: (body: any) => void;
+  initiateChatCompletion: (body: any, options?: ChatCompletionOptions) => void;
 };
 
 export const useChatCompletion: UseChatCompletionHook = (
@@ -18,12 +21,15 @@ export const useChatCompletion: UseChatCompletionHook = (
   onComplete
 ) => {
   const { getToken } = useAuth();
-  const [loading, setLoading] = useState(false);
   const [loadingAi, setLoadingAi] = useAtom(loadingAiAtom);
 
   const _generateMd = useCallback(
-    async (body: any) => {
+    async (
+      body: any,
+      { abortController = new AbortController() }: ChatCompletionOptions
+    ) => {
       const response = await fetch(apiEndpoint, {
+        signal: abortController.signal,
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -42,6 +48,7 @@ export const useChatCompletion: UseChatCompletionHook = (
         const { done, value } = await reader.read();
 
         if (done) {
+          setLoadingAi(false);
           onComplete?.();
           break;
         }
@@ -49,28 +56,21 @@ export const useChatCompletion: UseChatCompletionHook = (
         handleNewToken(decoder.decode(value));
       }
     },
-    [apiEndpoint, getToken, handleNewToken, onComplete]
+    [apiEndpoint, getToken, handleNewToken, onComplete, setLoadingAi]
   );
 
-  const prevLoading = usePrevious(loading);
-  useEffect(() => {
-    if (prevLoading && !loading) {
-      setLoadingAi(false);
-    }
-  }, [loading, prevLoading, setLoadingAi]);
-
   const initiateChatCompletion = useCallback(
-    (body: any) => {
-      setLoading(true);
+    (body: any, options?: ChatCompletionOptions) => {
       setLoadingAi(true);
-      _generateMd(body)
-        .catch((error) => console.error(error))
-        .finally(() => {
-          setLoading(false);
-        });
+      _generateMd(body, options ?? {}).catch((error) => console.error(error));
     },
     [_generateMd, setLoadingAi]
   );
 
-  return useMemo(() => ({ initiateChatCompletion }), [initiateChatCompletion]);
+  return useMemo(
+    () => ({
+      initiateChatCompletion,
+    }),
+    [initiateChatCompletion]
+  );
 };

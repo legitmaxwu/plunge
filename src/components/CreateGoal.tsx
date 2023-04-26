@@ -1,7 +1,7 @@
 import { useMachine } from "@xstate/react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { assign, createMachine } from "xstate";
 import { Button } from "./base/Button";
 import { Textarea } from "./base/Textarea";
@@ -12,6 +12,11 @@ import { RenderAIOptions } from "./RenderAIOptions";
 import { useQueryParam } from "../hooks/useQueryParam";
 import { useStackStore } from "../utils/zustand/stackStore";
 import { useAuth } from "@clerk/nextjs";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { Fade } from "./animate/Fade";
+import { useChatCompletion } from "../hooks/useChatCompletion";
+import { useAtom } from "jotai";
+import { loadingAiAtom } from "../utils/jotai";
 
 interface TypingAnimationProps {
   text: string;
@@ -46,15 +51,17 @@ type StepCardProps = {
 function StepCard(props: StepCardProps) {
   const { children } = props;
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 200 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 200 }}
-      transition={{ duration: 0.3 }}
-      className="flex w-full max-w-lg flex-col items-center rounded-md border border-gray-400 bg-white/20 p-12 shadow-md"
-    >
-      {children}
-    </motion.div>
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 200 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 200 }}
+        transition={{ duration: 0.3 }}
+        className="flex w-full max-w-lg flex-col items-center rounded-md border border-gray-400 bg-white/20 p-12 shadow-md"
+      >
+        {children}
+      </motion.div>
+    </>
   );
 }
 
@@ -124,6 +131,7 @@ interface InitGoalProps {
 function InitGoal(props: InitGoalProps) {
   const { onComplete } = props;
   const [goal, setGoal] = useState("");
+  const router = useRouter();
 
   const parentGoalId = useQueryParam("parentGoalId", "string");
   const { data } = api.goal.get.useQuery(
@@ -132,7 +140,7 @@ function InitGoal(props: InitGoalProps) {
   );
   return (
     <StepCard>
-      <div className="text-xl">Describe your goal.</div>
+      <div className="text-xl">What would you like to learn?</div>
       {parentGoalId && (
         <>
           <div className="h-4"></div>
@@ -146,19 +154,29 @@ function InitGoal(props: InitGoalProps) {
       <Textarea
         minRows={1}
         className="w-full"
-        placeholder="I would like to learn about X."
+        placeholder="cook a steak, build a website, etc."
         value={goal}
         onValueChange={setGoal}
       />
       <div className="h-8"></div>
-      <Button
-        disabled={!goal}
-        onClick={() => {
-          onComplete(goal);
-        }}
-      >
-        Continue
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          onClick={() => {
+            router.back();
+          }}
+        >
+          Back
+        </Button>
+        <Button
+          disabled={!goal}
+          onClick={() => {
+            onComplete(goal);
+          }}
+        >
+          Continue
+        </Button>
+      </div>
     </StepCard>
   );
 }
@@ -181,67 +199,52 @@ function RefineGoal(props: RefineGoalProps) {
 
   const { getToken } = useAuth();
 
-  const [loading, setLoading] = useState(false);
-  useEffect(() => {
-    let processedGoal = currentGoal;
-    if (data) {
-      processedGoal += `\n\nThis goal is a subgoal of: ${data.title}`;
-    }
+  const [loadingAi, setLoadingAi] = useAtom(loadingAiAtom);
+  const [disliked, setDisliked] = useState(false);
+  const [comment, setComment] = useState("");
 
-    const abortController = new AbortController();
-    const getSuggestions = async () => {
+  const handleNewToken = useCallback((newToken: string) => {
+    setRefineOptions((prev) => {
+      return prev.join("\n").concat(newToken).split("\n");
+    });
+  }, []);
+
+  const { initiateChatCompletion } = useChatCompletion(
+    "/api/ai/refine-goal",
+    handleNewToken
+  );
+
+  const getSuggestions = useCallback(
+    (goal: string, comments?: string, currentOptions?: string[]) => {
+      const abortController = new AbortController();
+
       setRefineOptions([]);
-      const response = await fetch("/api/ai/refine-goal", {
-        signal: abortController.signal,
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${(await getToken()) ?? ""}`,
+      setDisliked(false);
+      setComment("");
+
+      initiateChatCompletion(
+        {
+          goal,
+          comments,
+          currentOptions,
         },
-        body: JSON.stringify({
-          goal: processedGoal,
-        }),
-      });
-
-      const reader = response.body?.getReader();
-
-      if (!reader) {
-        return;
-      }
-      const decoder = new TextDecoder();
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) {
-          break;
+        {
+          abortController,
         }
+      );
 
-        setRefineOptions((prev) => {
-          const newToken = decoder.decode(value);
-          return prev.join("\n").concat(newToken).split("\n");
-        });
-      }
-    };
-
-    setLoading(true);
-    getSuggestions()
-      .catch((err: any) => {
-        // Ignore abort errors
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        if (err?.name !== "AbortError") {
-          handleError(err);
-        }
-
-        console.log("Aborted");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-
+      return () => {
+        abortController.abort();
+      };
+    },
+    [initiateChatCompletion]
+  );
+  useEffect(() => {
+    const cancel = getSuggestions(currentGoal);
     return () => {
-      abortController.abort();
+      cancel();
     };
-  }, [currentGoal, data, getToken]);
+  }, [currentGoal, getSuggestions]);
 
   return (
     <StepCard>
@@ -249,11 +252,44 @@ function RefineGoal(props: RefineGoalProps) {
       <div className="h-8"></div>
       <RenderAIOptions
         options={[currentGoal, ...refineOptions]}
-        disabled={loading}
+        disabled={loadingAi}
         onOptionSelected={(value) => {
           onComplete(value);
         }}
       />
+      {!loadingAi && refineOptions.length !== 0 && (
+        <Fade className="flex w-full flex-col items-center">
+          <div className="h-6"></div>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setDisliked(true);
+            }}
+          >
+            {"I don't like any of these options."}
+          </Button>
+          {disliked && (
+            <Fade className="flex w-full flex-col items-center">
+              <div className="h-4"></div>
+              <Textarea
+                className="w-full"
+                value={comment}
+                onValueChange={setComment}
+                minRows={2}
+                placeholder="Explain why you don't like these options."
+              />
+              <div className="h-2"></div>
+              <Button
+                onClick={() => {
+                  getSuggestions(currentGoal, comment, refineOptions);
+                }}
+              >
+                Generate new options
+              </Button>
+            </Fade>
+          )}
+        </Fade>
+      )}
     </StepCard>
   );
 }
@@ -283,7 +319,7 @@ function FinalizeGoal(props: FinalizeGoalProps) {
 export function CreateGoal() {
   const router = useRouter();
   const [state, send] = useMachine(createGoalMachine);
-  const { mutateAsync } = api.goal.create.useMutation();
+  const { mutateAsync } = api.journey.create.useMutation();
 
   const parentGoalId = useQueryParam("parentGoalId", "string");
   const addChild = useStackStore((state) => state.addChild);
@@ -316,8 +352,7 @@ export function CreateGoal() {
           }}
           onComplete={() => {
             mutateAsync({
-              title: state.context.goal,
-              parentGoalId: parentGoalId ?? undefined,
+              goalTitle: state.context.goal,
             })
               .then((res) => {
                 if (parentGoalId) {
@@ -325,9 +360,9 @@ export function CreateGoal() {
                 } else {
                   init(res.id);
                 }
-                router.push(`/goal/${res.id}`).catch((err) => {
-                  handleError(err);
-                });
+                router
+                  .push(`/journey/${res.id}/goal/${res.goalId}`)
+                  .catch(handleError);
               })
               .catch((err) => {
                 handleError(err);

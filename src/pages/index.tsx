@@ -1,4 +1,5 @@
 import { useUser, useClerk } from "@clerk/nextjs";
+import { useAtom } from "jotai";
 import { type NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -14,34 +15,46 @@ import { useStackStore } from "../utils/zustand/stackStore";
 function HomePage() {
   const router = useRouter();
 
-  const { data } = api.goal.getAll.useQuery();
+  const { data: journeys } = api.journey.getAll.useQuery();
 
   const init = useStackStore((state) => state.init);
   return (
     <SidePadding className="flex h-screen flex-col items-center justify-between overflow-y-scroll bg-gradient-to-r from-pink-200 to-sky-200 p-8">
       <Navbar />
-      <div className="p-8"></div>
-      <div className="flex flex-wrap items-center gap-2 p-8">
-        {data?.map((goal) => (
-          <button
-            className="bg-white/20 px-3 py-2 shadow-md hover:bg-white/40"
-            key={goal.id}
-            onClick={() => {
-              init(goal.id);
+      <div className="h-8"></div>
+      <div className="p-8">
+        <div className="text-xl font-bold">{"Things I'm learning"}</div>
+        <div className="h-8"></div>
+        <div className="flex flex-wrap items-center gap-2">
+          {journeys?.map((journey) => (
+            <button
+              className="bg-white/20 px-3 py-2 shadow-md hover:bg-white/40"
+              key={journey.id}
+              onClick={() => {
+                init(journey.id);
 
-              router.push(`/goal/${goal.id}`).catch(handleError);
-            }}
-          >
-            {goal.title}
-          </button>
-        ))}
+                router
+                  .push(`/journey/${journey.id}/goal/${journey.goal.id}`)
+                  .catch(handleError);
+              }}
+            >
+              {journey.goal.title}
+            </button>
+          ))}
+          {journeys?.length === 0 && (
+            <div className="text-gray-500">
+              You haven&apos;t started learning anything yet.
+            </div>
+          )}
+        </div>
+        <div className="h-8"></div>
         <Button
           onClick={() => {
             router.push("/create/custom").catch(handleError);
           }}
           className="shadow-md"
         >
-          Create a new goal
+          Learn something new
         </Button>
       </div>
     </SidePadding>
