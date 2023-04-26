@@ -198,11 +198,8 @@ function RenderGoalItem(props: RenderGoalItemProps) {
 
   return (
     <div className="flex flex-col">
-      <button
+      <div
         className="relative mb-1 flex w-full items-start gap-0.5 text-black"
-        onClick={() => {
-          setExpanded((prev) => !prev);
-        }}
         onMouseEnter={() => {
           setHovering(true);
         }}
@@ -210,30 +207,37 @@ function RenderGoalItem(props: RenderGoalItemProps) {
           setHovering(false);
         }}
       >
-        <ChevronDownIcon
+        <button
+          onClick={() => {
+            setExpanded((prev) => !prev);
+          }}
+        >
+          <ChevronDownIcon
+            className={clsx({
+              "mt-1 h-3 w-3 shrink-0 transition": true,
+              "-rotate-90": !expanded,
+              "rotate-0": expanded,
+            })}
+          />
+        </button>
+        <button
           className={clsx({
-            "mt-1 h-3 w-3 shrink-0 transition": true,
-            "-rotate-90": !expanded,
-            "rotate-0": expanded,
+            "w-full flex-1 shrink-0 text-left text-sm": true,
+            "font-semibold": isViewingThisGoal,
           })}
-        />
-        <TooltipProvider delayDuration={1000}>
-          <Tooltip>
-            <TooltipTrigger className="flex-1 shrink-0 text-left">
-              <div
-                className={clsx({
-                  "w-full shrink-0 text-left text-sm": true,
-                })}
-              >
-                {goal?.title}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>{goal?.title}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!goal || !journey) return;
+            router
+              .push(`/journey/${journey.id}/goal/${goal.id}`)
+              .catch(handleError);
+          }}
+        >
+          {goal?.title}
+        </button>
         {hovering && (
           <Fade className="absolute right-0 flex shrink-0 items-center justify-end gap-0.5">
-            <button
+            {/* <button
               className="h-5 w-5 bg-white p-0.5 shadow-sm hover:bg-gray-100"
               onClick={(e) => {
                 e.stopPropagation();
@@ -244,7 +248,7 @@ function RenderGoalItem(props: RenderGoalItemProps) {
               }}
             >
               <DocumentTextIcon />
-            </button>
+            </button> */}
             <button
               className="h-5 w-5 bg-white p-0.5 shadow-sm hover:bg-gray-100"
               onClick={(e) => {
@@ -265,7 +269,7 @@ function RenderGoalItem(props: RenderGoalItemProps) {
             </button>
           </Fade>
         )}
-      </button>
+      </div>
       {expanded && (
         <Fade className="ml-3 flex flex-col">
           {/* {!!links?.length && <div className="h-1"></div>} */}

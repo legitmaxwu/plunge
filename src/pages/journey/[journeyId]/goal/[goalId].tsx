@@ -401,7 +401,9 @@ function ChatBot() {
 
   return (
     <div className="h-full w-full">
-      <div className="text-2xl font-bold text-black">Ask for help</div>
+      <div className="border border-transparent text-2xl font-bold text-black">
+        Ask for help
+      </div>
       <div className="h-2"></div>
       <div className="flex flex-wrap items-center gap-2">
         <Button
@@ -755,7 +757,9 @@ const GoalPage: NextPage = () => {
       <div className="flex flex-1 justify-center overflow-hidden">
         <div className="h-full w-1/5 max-w-sm shrink-0 p-8">
           <div className="flex items-center">
-            <div className="text-2xl font-bold text-black">Explorer</div>
+            <div className="border border-transparent text-2xl font-bold text-black">
+              Explorer
+            </div>
           </div>
           <div className="h-4"></div>
 

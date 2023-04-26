@@ -49,7 +49,7 @@ const MyApp: AppType = (props) => {
           </SignedOut>
         </>
       )}
-      <Toaster position="bottom-right" />
+      <Toaster />
     </ClerkProvider>
   );
 };
