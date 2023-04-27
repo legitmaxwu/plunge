@@ -7,7 +7,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { PencilSquareIcon as SolidPencilSquareIcon } from "@heroicons/react/24/solid";
 import { DocumentPlusIcon as SolidDocumentPlusIcon } from "@heroicons/react/24/solid";
-import IconButton from "./IconButton";
+import { IconButton } from "./IconButton";
 import { handleError } from "../utils/handleError";
 import clsx from "clsx";
 import ReactTextareaAutosize from "react-textarea-autosize";

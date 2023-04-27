@@ -3,7 +3,7 @@ import { useState } from "react";
 import { CSS } from "@dnd-kit/utilities";
 import { api } from "../utils/api";
 import { Bars3Icon, TrashIcon } from "@heroicons/react/24/outline";
-import IconButton from "./IconButton";
+import { IconButton } from "./IconButton";
 import { handleError } from "../utils/handleError";
 import clsx from "clsx";
 import { Checkbox } from "./base/Checkbox";
