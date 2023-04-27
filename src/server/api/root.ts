@@ -1,6 +1,5 @@
 import { createTRPCRouter } from "~/server/api/trpc";
 import { goalRouter } from "~/server/api/routers/goal";
-import { publicRouter } from "./routers/public";
 import { linkRouter } from "./routers/link";
 import { journeyRouter } from "./routers/journey";
 
@@ -12,7 +11,6 @@ import { journeyRouter } from "./routers/journey";
 export const appRouter = createTRPCRouter({
   goal: goalRouter,
   link: linkRouter,
-  public: publicRouter,
   journey: journeyRouter,
 });
 

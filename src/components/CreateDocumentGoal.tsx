@@ -8,21 +8,23 @@ import { Input } from "./base/Input";
 import clsx from "clsx";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { functionsApi } from "../utils/functionsApi";
 interface FaviconAndTitleProps {
   url: string;
 }
 const FaviconAndTitle = (props: FaviconAndTitleProps) => {
   const { url } = props;
 
-  const { data, error, isFetching } = api.public.fetchFaviconAndTitle.useQuery(
-    {
-      url,
-    },
-    {
-      enabled: !!url,
-      refetchOnWindowFocus: false,
-    }
-  );
+  const { data, error, isFetching } =
+    functionsApi.public.fetchFaviconAndTitle.useQuery(
+      {
+        url,
+      },
+      {
+        enabled: !!url,
+        refetchOnWindowFocus: false,
+      }
+    );
 
   if (isFetching) {
     return null;
@@ -55,10 +57,11 @@ interface WebsiteMarkdownProps {
 function WebsiteMarkdown(props: WebsiteMarkdownProps) {
   const { url } = props;
 
-  const { data, error, isFetching } = api.public.fetchMarkdown.useQuery(
-    { url },
-    { enabled: !!url, refetchOnWindowFocus: false }
-  );
+  const { data, error, isFetching } =
+    functionsApi.public.fetchMarkdown.useQuery(
+      { url },
+      { enabled: !!url, refetchOnWindowFocus: false }
+    );
 
   if (isFetching) {
     return null;

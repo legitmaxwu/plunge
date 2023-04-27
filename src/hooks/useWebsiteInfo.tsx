@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import { api } from "../utils/api";
+import { functionsApi } from "../utils/functionsApi";
 
 export function useWebsiteInfo(url: string) {
   const { data: faviconAndTitleData } =
-    api.public.fetchFaviconAndTitle.useQuery(
+    functionsApi.public.fetchFaviconAndTitle.useQuery(
       { url },
       {
         enabled: !!url,
@@ -11,7 +11,7 @@ export function useWebsiteInfo(url: string) {
       }
     );
 
-  const { data: markdownData } = api.public.fetchMarkdown.useQuery(
+  const { data: markdownData } = functionsApi.public.fetchMarkdown.useQuery(
     { url },
     { enabled: !!url, refetchOnWindowFocus: false }
   );
