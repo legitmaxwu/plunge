@@ -6,6 +6,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./base/Tooltip";
+import clsx from "clsx";
 
 type Icon = React.ForwardRefExoticComponent<
   React.PropsWithoutRef<React.SVGProps<SVGSVGElement>> & {
@@ -43,7 +44,13 @@ export function IconButton(props: IconButtonProps) {
             </button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>{tooltipText}</p>
+            <p
+              className={clsx({
+                "text-gray-400": props.disabled,
+              })}
+            >
+              {tooltipText}
+            </p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
