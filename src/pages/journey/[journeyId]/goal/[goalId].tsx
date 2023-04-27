@@ -7,19 +7,22 @@ import {
   useCallback,
   useMemo,
   useRef,
-  type RefObject,
+  type HTMLProps,
+  type ButtonHTMLAttributes,
 } from "react";
 
 import { useQueryParam } from "../../../../hooks/useQueryParam";
 import { api } from "../../../../utils/api";
 import {
   ArrowTopRightOnSquareIcon,
+  ChevronDownIcon,
   EllipsisHorizontalIcon,
   PencilSquareIcon,
+  QuestionMarkCircleIcon,
   SparklesIcon,
 } from "@heroicons/react/24/outline";
 import { PencilSquareIcon as SolidPencilSquareIcon } from "@heroicons/react/24/solid";
-import IconButton from "../../../../components/IconButton";
+import { IconButton } from "../../../../components/IconButton";
 import { handleError } from "../../../../utils/handleError";
 import clsx from "clsx";
 import ReactTextareaAutosize from "react-textarea-autosize";
@@ -39,204 +42,103 @@ import {
   newGuideAtom,
   loadingAiAtom,
   newPrereqAtom,
+  newSubgoalAtom,
 } from "../../../../utils/jotai";
 import { parseDiff, Diff, Hunk } from "react-diff-view";
 import { applyPatch as diffApplyPatch } from "diff";
 import { Sparkles } from "../../../../components/Sparkles";
 import { GoalExplorer } from "../../../../components/GoalExplorer";
-import { Portal } from "@radix-ui/react-portal";
-import {
-  Popover,
-  PopoverAnchor,
-  PopoverContent,
-} from "../../../../components/base/Popover";
 import { usePrevious } from "../../../../hooks/usePrevious";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
+import { type } from "os";
+import { TextSelectionMenu } from "../../../../components/TextSelectionMenu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../../../../components/base/Dropdown";
 
-type ChatBotSubmitEvent = CustomEvent<{ query: string }>;
-
-type CallbackType = (selectedText: string, x: number, y: number) => void;
-
-function useSelection(
-  callback: CallbackType,
-  targetRef: RefObject<HTMLDivElement>
-) {
-  useEffect(() => {
-    let clickTimeout: NodeJS.Timeout;
-
-    const handleSelection = (e: MouseEvent) => {
-      if (clickTimeout) {
-        clearTimeout(clickTimeout);
-      }
-
-      clickTimeout = setTimeout(() => {
-        const selection = window.getSelection();
-        const selectedText = selection?.toString();
-
-        if (selectedText) {
-          const { clientX: x, clientY: y } = e;
-          callback(selectedText, x, y);
-        }
-      }, 250);
-    };
-
-    const targetElement = targetRef.current;
-
-    if (targetElement) {
-      targetElement.addEventListener("mouseup", handleSelection);
-    }
-
-    return () => {
-      if (targetElement) {
-        targetElement.removeEventListener("mouseup", handleSelection);
-      }
-    };
-  }, [callback, targetRef]);
+interface HeadingDropdownProps {
+  sectionName: string;
+  iconClassName?: string;
 }
 
-interface TextSelectionMenuProps {
-  parentRef: React.RefObject<HTMLDivElement>;
-}
-const TextSelectionMenu = (props: TextSelectionMenuProps) => {
-  const { parentRef } = props;
-
-  const [selectedText, setSelectedText] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
-
-  const [menuPosition, setMenuPosition] = useState({ left: 0, top: 0 });
-
-  useSelection((selectedText, left, top) => {
-    if (!selectedText.trim()) return;
-    setMenuPosition({ left, top });
-    setIsOpen(true);
-    setSelectedText(selectedText.trim());
-  }, parentRef);
+function HeadingDropdown(props: HeadingDropdownProps) {
+  const { sectionName, iconClassName } = props;
+  const styles = clsx(
+    {
+      "mb-0.5 ml-2 inline h-5 w-5 cursor-pointer text-gray-500 hover:text-gray-400":
+        true,
+    },
+    iconClassName
+  );
 
   return (
-    <Portal>
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverAnchor
-          style={{
-            position: "absolute",
-            left: menuPosition.left,
-            top: menuPosition.top,
-            width: 0,
-            height: 0,
-            // border: "1px solid red",
-            zIndex: 1,
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <QuestionMarkCircleIcon className={styles} />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-40" align="start">
+        <DropdownMenuItem
+          onClick={() => {
+            window.dispatchEvent(
+              new CustomEvent("chatbotSubmit", {
+                detail: {
+                  query: `I want to study this further:\n\n${sectionName}`,
+                },
+              })
+            );
           }}
-        />
-        {selectedText && (
-          <PopoverContent
-            className="flex w-64 flex-col py-1"
-            side="bottom"
-            align="start"
-          >
-            <div className="flex items-center px-3 py-1 text-xs font-medium">
-              <span className="shrink-0">{'"'}</span>
-              <span className="max-w-full truncate">{selectedText}</span>
-              <span className="shrink-0">{'"'}</span>
-            </div>
-            <div className="my-1 h-px bg-gray-400/10"></div>
-            <button
-              className="px-3 py-1 text-left text-xs hover:bg-gray-100"
-              onClick={() => {
-                window.dispatchEvent(
-                  new CustomEvent("chatbotSubmit", {
-                    detail: {
-                      query: `I don't understand this:\n\n${selectedText}`,
-                    },
-                  })
-                );
-                setIsOpen(false);
-              }}
-            >
-              {"I don't understand this"}
-            </button>
-            <button
-              className="px-3 py-1 text-left text-xs hover:bg-gray-100"
-              onClick={() => {
-                window.dispatchEvent(
-                  new CustomEvent("chatbotSubmit", {
-                    detail: {
-                      query: `I want to study this further:\n\n${selectedText}`,
-                    },
-                  })
-                );
-                setIsOpen(false);
-              }}
-            >
-              {"Study this further"}
-            </button>
-            <button
-              className="px-3 py-1 text-left text-xs hover:bg-gray-100"
-              onClick={() => {
-                window.dispatchEvent(
-                  new CustomEvent("chatbotSubmit", {
-                    detail: {
-                      query: `Can you modify the guide to expand on the area roughly surrounding this text?\n\n${selectedText}`,
-                    },
-                  })
-                );
-                setIsOpen(false);
-              }}
-            >
-              Expand Section
-            </button>
-            <button
-              className="px-3 py-1 text-left text-xs hover:bg-gray-100"
-              onClick={() => {
-                window.dispatchEvent(
-                  new CustomEvent("chatbotSubmit", {
-                    detail: {
-                      query: `> ${selectedText}\n\n`,
-                      submit: false,
-                    },
-                  })
-                );
-                setIsOpen(false);
-              }}
-            >
-              Quote
-            </button>
-          </PopoverContent>
-        )}
-      </Popover>
-    </Portal>
+        >
+          Study further
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            window.dispatchEvent(
+              new CustomEvent("chatbotSubmit", {
+                detail: {
+                  query: `Can you modify the guide to expand on the "${sectionName}" section?`,
+                },
+              })
+            );
+          }}
+        >
+          Expand section
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
+}
+
+type NewSubgoalButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  subgoal: string;
 };
 
-interface HoverMenuProps {
-  children: React.ReactNode;
-  innerClassName?: string;
-}
+function NewSubgoalButton(props: NewSubgoalButtonProps) {
+  const { subgoal, ...rest } = props;
 
-function HoverMenu(props: HoverMenuProps) {
-  const { children, innerClassName } = props;
-
-  const [hovering, setHovering] = useState(false);
+  const [newSubgoal, setNewSubgoal] = useAtom(newSubgoalAtom);
 
   return (
-    <div
-      className="relative"
-      onMouseEnter={() => setHovering(true)}
-      onMouseLeave={() => setHovering(false)}
+    <button
+      {...rest}
+      className="mb-2 mr-2 block rounded-sm bg-white/40 px-3 py-2 text-left hover:bg-white/70"
+      onMouseEnter={() => {
+        setNewSubgoal(subgoal);
+      }}
+      onMouseLeave={() => {
+        setNewSubgoal(null);
+      }}
     >
-      {children}
-      <div className="absolute right-full top-0">
-        {hovering && (
-          <div className={clsx("p-1.5", innerClassName)}>
-            <EllipsisHorizontalIcon className="h-4 w-4" />
-          </div>
-        )}
-      </div>
-    </div>
+      {subgoal}
+    </button>
   );
 }
 
 function applyPatch(before: string, patchText: string): string {
-  return diffApplyPatch(before, patchText, { fuzzFactor: 2 });
+  return diffApplyPatch(before, patchText, { fuzzFactor: 1 });
 }
 
 interface DiffComponentProps {
@@ -329,8 +231,6 @@ const DiffComponent: React.FC<DiffComponentProps> = ({ patchString }) => {
 function ChatBot() {
   const journeyId = useQueryParam("journeyId", "string");
   const [goal, setGoal] = useAtom(goalAtom);
-
-  const [newPrereq, setNewPrereq] = useAtom(newPrereqAtom);
 
   const [query, setQuery] = useState<string>("");
 
@@ -532,27 +432,23 @@ function ChatBot() {
                 const stripped = text.replace(/@@@@/g, "");
                 if (!goal) return null;
                 return (
-                  <button
-                    className="mb-2 mr-2 block rounded-sm bg-white/40 px-3 py-2 text-left hover:bg-white/50"
-                    disabled={isLoading}
+                  <NewSubgoalButton
+                    subgoal={stripped}
                     onClick={() => {
-                      createPrereqs({
-                        parentGoalId: goal.id,
-                        goalTitles: [stripped],
-                      })
-                        .then((res) => {
-                          const link = res[0];
-                          if (!link || !journeyId) return;
-
-                          router
-                            .push(`/journey/${journeyId}/goal/${link.childId}`)
-                            .catch(handleError);
+                      window.dispatchEvent(
+                        new CustomEvent("explorerAdd", {
+                          detail: {
+                            parentGoalId: goal.id,
+                            subgoal: stripped,
+                          },
                         })
-                        .catch(handleError);
+                      );
+                      // createPrereqs({
+                      //   parentGoalId: goal.id,
+                      //   goalTitles: [stripped],
+                      // }).catch(handleError);
                     }}
-                  >
-                    {stripped}
-                  </button>
+                  ></NewSubgoalButton>
                 );
               }
               return (
@@ -579,8 +475,6 @@ function ChatBot() {
 function ManageGuide() {
   const [goal, setGoal] = useAtom(goalAtom);
 
-  const selection = useTextSelection();
-
   const handleNewToken = useCallback(
     (token: string) => {
       setGoal((prev) => {
@@ -599,6 +493,14 @@ function ManageGuide() {
     handleNewToken
   );
 
+  useEffect(() => {
+    if (goal && goal.guideMarkdown === null && !loadingAi) {
+      initiateChatCompletion({
+        goal: goal.title,
+      });
+    }
+  }, [goal, initiateChatCompletion, loadingAi]);
+
   const [isEditing, setIsEditing] = useState(false);
 
   const [newGuide] = useAtom(newGuideAtom);
@@ -608,7 +510,7 @@ function ManageGuide() {
 
   if (!goal) return null;
 
-  const generateButtonDisabled = !!goal.guideMarkdown || loadingAi;
+  const generateButtonDisabled = !!goal.guideMarkdown || loadingAi || !goal;
 
   return (
     <div className="">
@@ -624,7 +526,11 @@ function ManageGuide() {
                   goal: goal.title,
                 });
               }}
-              tooltipText="Generate Guide"
+              tooltipText={
+                generateButtonDisabled
+                  ? "Guide already exists"
+                  : "Generate Guide"
+              }
             />
           </Sparkles>
         </div>
@@ -651,7 +557,7 @@ function ManageGuide() {
       >
         {isEditing ? (
           <ReactTextareaAutosize
-            className="w-full bg-transparent p-4 font-mono"
+            className="w-full rounded-sm border border-transparent bg-transparent p-4 font-mono text-sm transition focus:border-gray-700 focus:outline-none"
             value={goal.guideMarkdown ?? ""}
             onChange={(e) => {
               setGoal((goal) => {
@@ -679,6 +585,42 @@ function ManageGuide() {
                 //     </HoverMenu>
                 //   );
                 // },
+                h1: ({ children, ...props }) => {
+                  if (!children) return null;
+                  return (
+                    <h1 {...props}>
+                      {children}
+                      <HeadingDropdown sectionName={children.join("")} />
+                    </h1>
+                  );
+                },
+                h2: ({ children, ...props }) => {
+                  if (!children) return null;
+                  return (
+                    <h2 {...props}>
+                      {children}
+                      <HeadingDropdown sectionName={children.join("")} />
+                    </h2>
+                  );
+                },
+                h3: ({ children, ...props }) => {
+                  if (!children) return null;
+                  return (
+                    <h3 {...props}>
+                      {children}
+                      <HeadingDropdown sectionName={children.join("")} />
+                    </h3>
+                  );
+                },
+                h4: ({ children, ...props }) => {
+                  if (!children) return null;
+                  return (
+                    <h4 {...props}>
+                      {children}
+                      <HeadingDropdown sectionName={children.join("")} />
+                    </h4>
+                  );
+                },
                 a({ href, children, className, node, ...props }) {
                   // make target="_blank" for external links
                   const isExternal = href?.startsWith("http");
@@ -754,52 +696,65 @@ const GoalPage: NextPage = () => {
   return (
     <div className="flex h-screen flex-col bg-gradient-to-r from-pink-200 to-sky-200">
       <Navbar />
-      <div className="flex flex-1 justify-center overflow-hidden">
-        <div className="h-full w-1/5 max-w-sm shrink-0 p-8">
-          <div className="flex items-center">
-            <div className="border border-transparent text-2xl font-bold text-black">
-              Explorer
+      <div className="flex w-full flex-1 overflow-hidden">
+        <div className="h-full w-1/5 max-w-sm shrink-0">
+          <ScrollArea className="h-full w-full p-8 py-0">
+            <div className="h-8"></div>
+            <div className="flex items-center">
+              <div className="border border-transparent text-2xl font-bold text-black">
+                Explorer
+              </div>
             </div>
-          </div>
-          <div className="h-4"></div>
+            <div className="h-4"></div>
 
-          <GoalExplorer />
+            <GoalExplorer />
+            <div className="h-8"></div>
+          </ScrollArea>
         </div>
-        <div className="my-8 w-px bg-black/20"></div>
-        <div className="flex h-full w-2/5 flex-col">
-          <ScrollArea className="h-full w-full p-8">
+        <div className="w-px shrink-0 bg-black/20"></div>
+        <div className="flex h-full flex-1 flex-col">
+          <ScrollArea className="h-full w-full p-8 py-0">
+            <div className="h-8"></div>
             <div className="w-full text-2xl font-bold">
-              <ReactTextareaAutosize
-                value={goal?.title}
-                className={clsx({
-                  "mr-2 w-full resize-none rounded-sm border border-transparent bg-transparent outline-none transition hover:border-gray-400":
-                    true,
-                  "focus:border-black": true,
-                })}
-                onChange={(e) => {
-                  setGoal((prev) => {
-                    if (!prev) return prev;
-                    return {
-                      ...prev,
-                      title: e.target.value,
-                    };
-                  });
-                }}
-              />
+              {goal ? (
+                <ReactTextareaAutosize
+                  value={goal.title}
+                  className={clsx({
+                    "mr-2 w-full resize-none rounded-sm border border-transparent bg-gradient-to-r from-pink-700 via-purple-700 to-sky-700 bg-clip-text text-transparent caret-black outline-none transition hover:border-gray-400":
+                      true,
+                    "focus:border-black": true,
+                  })}
+                  onChange={(e) => {
+                    setGoal((prev) => {
+                      if (!prev) return prev;
+                      return {
+                        ...prev,
+                        title: e.target.value,
+                      };
+                    });
+                  }}
+                />
+              ) : (
+                <div className="w-1/2 animate-pulse rounded-sm bg-black/5 text-xl">
+                  &nbsp;
+                </div>
+              )}
             </div>
 
             <div className="h-8"></div>
             <ManageGuide />
-            {/* <div className="h-8"></div>
-            <ManagePrereqs /> */}
+
+            <div className="h-8"></div>
           </ScrollArea>
         </div>
-        <div className="my-8 w-px bg-black/20"></div>
-        <ScrollArea className="h-full w-2/5 shrink-0 p-8">
-          {/* <ManagePrereqs />
-          <div className="h-8"></div> */}
-          <ChatBot />
-        </ScrollArea>
+        <div className="w-px shrink-0 bg-black/20"></div>
+        <div className="h-full md:w-2/5">
+          <ScrollArea className="h-full w-full p-8 py-0">
+            <div className="h-8"></div>
+            <ChatBot />
+            <div className="h-8"></div>
+          </ScrollArea>
+        </div>
       </div>
     </div>
   );

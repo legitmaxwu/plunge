@@ -14,20 +14,16 @@ type Icon = React.ForwardRefExoticComponent<
   } & React.RefAttributes<SVGSVGElement>
 >;
 
-type IconButtonProps = {
+type SmallIconButtonProps = {
   icon: Icon;
   tooltipText?: string;
 } & React.ComponentPropsWithoutRef<"button">;
 
-export function IconButton(props: IconButtonProps) {
-  const { icon, onClick, tooltipText, className, ...rest } = props;
+export function SmallIconButton(props: SmallIconButtonProps) {
+  const { icon, tooltipText, className, ...rest } = props;
 
   const styles = cn(
-    {
-      "h-7 w-7 p-1 text-black hover:bg-white/20 transition rounded-sm cursor-pointer":
-        true,
-      "bg-gray-400/20 hover:bg-gray-400/20 cursor-not-allowed": props.disabled,
-    },
+    { "h-5 w-5 bg-white p-0.5 shadow-sm hover:bg-gray-100": true },
     className
   );
 
@@ -38,7 +34,7 @@ export function IconButton(props: IconButtonProps) {
       <TooltipProvider delayDuration={0}>
         <Tooltip>
           <TooltipTrigger>
-            <button {...rest} className={styles} onClick={onClick}>
+            <button {...rest} className={styles}>
               <Icon className="h-full w-full" />
             </button>
           </TooltipTrigger>
@@ -50,7 +46,7 @@ export function IconButton(props: IconButtonProps) {
     );
   } else {
     return (
-      <button {...rest} className={styles} onClick={onClick}>
+      <button {...rest} className={styles}>
         <Icon className="h-full w-full" />
       </button>
     );

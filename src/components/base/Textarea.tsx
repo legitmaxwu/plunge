@@ -27,7 +27,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
       {
         "border border-black/10 bg-white/30 rounded-md px-3 py-2 resize-none":
           true,
-        "focus:bg-white/40 focus:outline-none": true,
+        "focus:bg-white/70 focus:outline-none": true,
       },
       className
     );

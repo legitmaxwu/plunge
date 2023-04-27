@@ -9,7 +9,17 @@ const DEFAULT_COLOR = "#ffef93";
 const random = (min: number, max: number) =>
   Math.floor(Math.random() * (max - min)) + min;
 
-const generateSparkle = (color: string) => {
+type SparkleItem = {
+  id: string;
+  createdAt: number;
+  color: string;
+  size: number;
+  style: {
+    top: string;
+    left: string;
+  };
+};
+const generateSparkle = (color: string): SparkleItem => {
   const sparkle = {
     id: String(random(10000, 99999)),
     createdAt: Date.now(),
@@ -27,17 +37,19 @@ interface SparklesProps {
   color?: string;
   children: ReactNode;
   enabled?: boolean;
+  frequency?: number;
+  starsPerCycle?: number;
 }
 
 export const Sparkles: FC<SparklesProps> = ({
   color = DEFAULT_COLOR,
   enabled = true,
+  frequency = 1,
+  starsPerCycle = 1,
   children,
   ...delegated
 }) => {
-  const [sparkles, setSparkles] = useState(() => {
-    return Array.from({ length: 3 }).map(() => generateSparkle(color));
-  });
+  const [sparkles, setSparkles] = useState<SparkleItem[]>([]);
   const prefersReducedMotion = usePrefersReducedMotion();
   useRandomInterval(
     () => {
@@ -48,14 +60,16 @@ export const Sparkles: FC<SparklesProps> = ({
       });
 
       if (enabled) {
-        const sparkle = generateSparkle(color);
-        nextSparkles.push(sparkle);
+        for (let i = 0; i < starsPerCycle; i++) {
+          const sparkle = generateSparkle(color);
+          nextSparkles.push(sparkle);
+        }
       }
 
       setSparkles(nextSparkles);
     },
-    prefersReducedMotion ? null : 500,
-    prefersReducedMotion ? null : 750
+    prefersReducedMotion ? null : 500 / frequency,
+    prefersReducedMotion ? null : 750 / frequency
   );
 
   return (
@@ -68,7 +82,7 @@ export const Sparkles: FC<SparklesProps> = ({
           style={sparkle.style}
         />
       ))}
-      <strong className="relative z-10 font-bold">{children}</strong>
+      <strong className="relative z-10">{children}</strong>
     </span>
   );
 };

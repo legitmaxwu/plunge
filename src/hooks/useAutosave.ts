@@ -18,7 +18,7 @@ type UseAutoSaveInput<TData> = {
   data: TData;
   setData: Dispatch<SetStateAction<TData>>;
   saveDebounce?: number;
-  shouldSave?: (prev: TData | null, next: TData | null) => boolean;
+  shouldSave?: (prev: TData, next: TData) => boolean;
 };
 
 // useAutoSave.ts (continued)
@@ -46,9 +46,11 @@ export const useAutoSave = <
   useEffect(() => {
     if (remoteData) {
       if (
-        remoteData.id === data?.id &&
-        remoteData.updatedAt.getTime() < (data?.updatedAt.getTime() ?? 0)
+        remoteData.id === data?.id
+        // remoteData.updatedAt.getTime() < (data?.updatedAt.getTime() ?? 0)
       ) {
+        // Only update the local data if the remote data a different id
+        // After first load, the local data serves as the source of truth.
         return;
       }
       setData(remoteData);
@@ -69,7 +71,7 @@ export const useAutoSave = <
   useEffect(() => {
     if (equal(data, prevData)) return;
 
-    if (shouldSave(remoteData ?? null, data)) {
+    if (data && remoteData && shouldSave(remoteData, data)) {
       debouncedSave(data);
     }
   }, [data, debouncedSave, prevData, remoteData, shouldSave]);

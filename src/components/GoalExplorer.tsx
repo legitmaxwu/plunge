@@ -33,7 +33,7 @@ import { useQueryParam } from "../hooks/useQueryParam";
 import { getLexoRankIndexBetween } from "../utils";
 import { api } from "../utils/api";
 import { handleError } from "../utils/handleError";
-import { goalAtom } from "../utils/jotai";
+import { goalAtom, newSubgoalAtom } from "../utils/jotai";
 import { useStackStore } from "../utils/zustand/stackStore";
 import { Fade } from "./animate/Fade";
 import {
@@ -42,13 +42,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./base/Tooltip";
-import IconButton from "./IconButton";
+import { IconButton } from "./IconButton";
+import { SmallIconButton } from "./SmallIconButton";
 
 interface RenderGoalItemProps {
   goalId: string;
+  parentGoalId?: string;
 }
 function RenderGoalItem(props: RenderGoalItemProps) {
-  const { goalId } = props;
+  const { goalId, parentGoalId } = props;
 
   const journeyId = useQueryParam("journeyId", "string");
 
@@ -71,19 +73,44 @@ function RenderGoalItem(props: RenderGoalItemProps) {
 
   const isViewingThisGoal = paramGoalId === goalId;
 
-  // ADDING NEW TO-DOS
+  const [newSubgoal, setNewSubgoal] = useAtom(newSubgoalAtom);
+
+  // ADDING NEW SUBGOALS
   const [newGoal, setNewGoal] = useState("");
-  const { mutateAsync: createPrereqs, isLoading: isAdding } =
-    api.link.createChildren.useMutation({
-      onSuccess(data) {
-        // Invalidate links
-        utils.link.getAllUnderGoal
-          .invalidate({
+  const { mutateAsync: createSubgoal, isLoading: createSubgoalLoading } =
+    api.link.createChildren.useMutation({});
+
+  const handleCreateSubgoal = useCallback(() => {
+    const processed = newGoal.trim();
+    if (!processed) {
+      toast.error("Please enter a subgoal title.");
+      return;
+    }
+
+    setNewGoal("");
+    setAdding(false);
+    toast
+      .promise(
+        createSubgoal({
+          parentGoalId: goalId,
+          goalTitles: [newGoal],
+        }).then(async () => {
+          await utils.link.getAllUnderGoal.invalidate({
             parentGoalId: goalId,
-          })
-          .catch(handleError);
-      },
-    });
+          });
+        }),
+        {
+          loading: "Creating subgoal...",
+          success: "Subgoal created",
+          error: "Error creating subgoal.",
+        }
+      )
+      .catch(handleError);
+    setNewGoal("");
+  }, [newGoal, goalId, utils, createSubgoal]);
+
+  // DELETING SUBGOALS
+  const { mutateAsync: deleteGoal } = api.goal.delete.useMutation({});
 
   // REACT DND BELOW
   const sensors = useSensors(useSensor(PointerSensor));
@@ -189,15 +216,50 @@ function RenderGoalItem(props: RenderGoalItemProps) {
   const [adding, setAdding] = useState(false);
   const addRef = useClickOutside<HTMLTextAreaElement>(() => {
     setAdding(false);
+    setNewGoal("");
   });
-  const handleAddClick = useCallback(() => {
-    setAdding(true);
-    setExpanded(true);
-    addRef.current?.focus();
-  }, [addRef]);
+
+  const handleAddClick = useCallback(
+    (newGoal?: string) => {
+      setAdding(true);
+      setExpanded(true);
+      if (newGoal) {
+        setNewGoal(newGoal);
+      }
+      addRef.current?.focus();
+    },
+    [addRef]
+  );
+
+  useEffect(() => {
+    const handleAddEvent = (e: any) => {
+      const ev = e as CustomEvent<{ subgoal: string; parentGoalId: string }>;
+      const subgoal = ev.detail.subgoal;
+      const parentGoalId = ev.detail.parentGoalId;
+
+      if (parentGoalId !== goalId) {
+        return;
+      }
+
+      if (subgoal) {
+        handleAddClick(subgoal);
+        setNewSubgoal(null);
+      }
+    };
+    window.addEventListener("explorerAdd", handleAddEvent);
+    return () => {
+      window.removeEventListener("explorerAdd", handleAddEvent);
+    };
+  }, [goalId, handleAddClick, setNewSubgoal]);
+
+  const highlightNewSubgoal = isViewingThisGoal && !!newSubgoal;
+
+  if (!goal) {
+    return null;
+  }
 
   return (
-    <div className="flex flex-col">
+    <Fade className="flex flex-col">
       <div
         className="relative mb-1 flex w-full items-start gap-0.5 text-black"
         onMouseEnter={() => {
@@ -249,59 +311,95 @@ function RenderGoalItem(props: RenderGoalItemProps) {
             >
               <DocumentTextIcon />
             </button> */}
-            <button
-              className="h-5 w-5 bg-white p-0.5 shadow-sm hover:bg-gray-100"
+
+            <SmallIconButton
+              tooltipText="Add subgoal"
+              icon={PlusIcon}
               onClick={(e) => {
                 e.stopPropagation();
                 handleAddClick();
               }}
-            >
-              <PlusIcon />
-            </button>
-            <button
-              className="h-5 w-5 bg-white p-0.5 shadow-sm hover:bg-gray-100"
-              onClick={(e) => {
-                e.stopPropagation();
-                toast.error("Not implemented yet");
-              }}
-            >
-              <TrashIcon className="text-red-800" />
-            </button>
+            />
+            {!isViewingThisGoal && (
+              <SmallIconButton
+                icon={TrashIcon}
+                tooltipText="Delete goal"
+                className="text-red-800"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toast
+                    .promise(
+                      deleteGoal({
+                        id: goalId,
+                      }).then(async () => {
+                        if (parentGoalId)
+                          await utils.link.getAllUnderGoal.invalidate({
+                            parentGoalId: parentGoalId,
+                          });
+                      }),
+                      {
+                        loading: "Deleting goal...",
+                        success: "Goal deleted.",
+                        error: "Error deleting goal.  ",
+                      }
+                    )
+                    .catch(handleError);
+                }}
+              />
+            )}
           </Fade>
         )}
       </div>
       {expanded && (
-        <Fade className="ml-3 flex flex-col">
+        <Fade
+          className={clsx({
+            "ml-1.5 flex flex-col border-l pl-1.5": true,
+            "border-black/10": !isViewingThisGoal,
+            "border-black/30": isViewingThisGoal,
+          })}
+        >
           {/* {!!links?.length && <div className="h-1"></div>} */}
-
-          {adding && (
-            <div className="mb-1 ml-2.5 flex w-full flex-1 items-center justify-between bg-white/30 pl-1 text-left text-sm transition-all">
+          {(highlightNewSubgoal || adding) && (
+            <div
+              className={clsx({
+                "mb-1 ml-2.5 flex w-full flex-1 items-center justify-between pl-1 text-left text-sm":
+                  true,
+                "bg-white/30": !highlightNewSubgoal,
+                "bg-blue-50": highlightNewSubgoal,
+              })}
+            >
               <ReactTextareaAutosize
                 ref={addRef}
                 minRows={1}
                 autoFocus
+                disabled={highlightNewSubgoal}
                 className={clsx({
                   "resize-none rounded-sm bg-transparent py-0 outline-none":
                     true,
-                  "ring-1 ring-gray-300 focus:ring-gray-500": isAdding,
+                  "ring-1 ring-gray-300 focus:ring-gray-500":
+                    createSubgoalLoading,
+                  // "bg-blue-50": isViewingThisGoal && !!newSubgoal,
                 })}
                 placeholder="Name of subgoal"
-                value={newGoal}
+                value={highlightNewSubgoal ? newSubgoal : newGoal}
                 onChange={(e) => {
                   setNewGoal(e.target.value);
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    handleCreateSubgoal();
+                  }
                 }}
               />
               <IconButton
                 icon={PlusIcon}
-                className="h-5 w-5"
-                onClick={() => {
-                  if (!goal) return;
-                  createPrereqs({
-                    parentGoalId: goal.id,
-                    goalTitles: [newGoal],
-                  }).catch(handleError);
-                  setNewGoal("");
-                  toast.success("Subgoal created");
+                className="h-5 w-5 shrink-0"
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCreateSubgoal();
                 }}
               />
             </div>
@@ -316,13 +414,19 @@ function RenderGoalItem(props: RenderGoalItemProps) {
               strategy={verticalListSortingStrategy}
             >
               {links?.map((link) => {
-                return <RenderGoalItem key={link.id} goalId={link.childId} />;
+                return (
+                  <RenderGoalItem
+                    key={link.id}
+                    goalId={link.childId}
+                    parentGoalId={goalId}
+                  />
+                );
               })}
             </SortableContext>
           </DndContext>
         </Fade>
       )}
-    </div>
+    </Fade>
   );
 }
 
@@ -331,7 +435,10 @@ export function GoalExplorer() {
 
   const { data } = api.journey.get.useQuery({ id: journeyId ?? "" });
 
-  if (!data) return null;
+  if (!data)
+    return (
+      <div className="w-1/2 animate-pulse rounded-sm bg-black/5">&nbsp;</div>
+    );
 
   return <RenderGoalItem goalId={data.goalId} />;
 }

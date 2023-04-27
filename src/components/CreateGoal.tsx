@@ -154,7 +154,7 @@ function InitGoal(props: InitGoalProps) {
       <Textarea
         minRows={1}
         className="w-full"
-        placeholder="cook a steak, build a website, etc."
+        placeholder="perpetual futures, chinese remainder theorem, etc."
         value={goal}
         onValueChange={setGoal}
       />
