@@ -50,18 +50,28 @@ type StepCardProps = {
 
 function StepCard(props: StepCardProps) {
   const { children } = props;
+  const router = useRouter();
   return (
-    <>
-      <motion.div
-        initial={{ opacity: 0, y: 200 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 200 }}
-        transition={{ duration: 0.3 }}
-        className="flex w-full max-w-lg flex-col items-center rounded-md border border-gray-400 bg-white/20 p-12 shadow-md"
+    <motion.div
+      initial={{ opacity: 0, y: 200 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 200 }}
+      transition={{ duration: 0.3 }}
+      className="w-full max-w-lg"
+    >
+      <button
+        className="mb-0.5 flex w-full items-center gap-0.5 text-black/40 transition hover:text-black/20"
+        onClick={() => {
+          router.push("/").catch(handleError);
+        }}
       >
+        <ArrowLeftIcon className="h-3 w-3 cursor-pointer " />
+        Home
+      </button>
+      <div className="flex h-full w-full flex-col items-center rounded-md border border-gray-400 bg-white/20 p-12 shadow-md">
         {children}
-      </motion.div>
-    </>
+      </div>
+    </motion.div>
   );
 }
 
@@ -160,14 +170,14 @@ function InitGoal(props: InitGoalProps) {
       />
       <div className="h-8"></div>
       <div className="flex items-center gap-2">
-        <Button
+        {/* <Button
           variant="ghost"
           onClick={() => {
             router.back();
           }}
         >
           Back
-        </Button>
+        </Button> */}
         <Button
           disabled={!goal}
           onClick={() => {

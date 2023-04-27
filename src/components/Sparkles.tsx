@@ -82,7 +82,7 @@ export const Sparkles: FC<SparklesProps> = ({
           style={sparkle.style}
         />
       ))}
-      <strong className="relative z-10">{children}</strong>
+      <div className="relative z-10">{children}</div>
     </span>
   );
 };

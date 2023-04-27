@@ -34,8 +34,8 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
   return (
     <div className="w-full">
-      <div className="flex justify-between px-8 py-2">
-        <div className="flex items-center gap-4">
+      <div className="flex justify-between px-4 py-2 md:px-8">
+        <div className="flex items-center gap-2 md:gap-6">
           <button
             className="mr-2 flex items-center gap-1.5 font-medium hover:text-gray-600"
             onClick={() => {
@@ -48,7 +48,7 @@ export function Navbar() {
           {showHelp && (
             <Dialog>
               <DialogTrigger>
-                <button className="mr-2 flex items-center gap-1.5 font-medium text-blue-700 hover:text-blue-500">
+                <button className="mr-2 flex items-center gap-1.5 font-medium text-gray-700 hover:text-gray-500">
                   <InformationCircleIcon className="s-5 w-5" />
                   Help
                 </button>
@@ -83,9 +83,7 @@ export function Navbar() {
 
         <div className="flex items-center">
           <div className="flex items-center gap-4">
-            <div>
-              {user?.firstName} {user?.lastName}
-            </div>
+            <div className="whitespace-nowrap">{user?.fullName}</div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div className="flex cursor-pointer items-center gap-1">

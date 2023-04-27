@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 // Next.js page
 
 import { type NextPage } from "next";
@@ -17,6 +18,8 @@ import {
   ArrowTopRightOnSquareIcon,
   ChevronDownIcon,
   EllipsisHorizontalIcon,
+  InformationCircleIcon,
+  LinkIcon,
   PencilSquareIcon,
   QuestionMarkCircleIcon,
   SparklesIcon,
@@ -59,6 +62,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../../../../components/base/Dropdown";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../../../../components/base/Dialog";
+import { CreateDocumentGoal } from "../../../../components/CreateDocumentGoal";
+import { useWebsiteInfo } from "../../../../hooks/useWebsiteInfo";
+import { Input } from "../../../../components/base/Input";
+import { Fade } from "../../../../components/animate/Fade";
 
 interface HeadingDropdownProps {
   sectionName: string;
@@ -376,14 +391,6 @@ function ChatBot() {
             code({ node, inline, className, children, ...props }) {
               const match = /language-(\w+)/.exec(className || "");
               const language = match?.[1];
-              // if (language === "patchfile") {
-              //   return (
-              //     <PatchViewer
-              //       oldString={goal?.guideMarkdown ?? "-"}
-              //       patchString={children.join("")}
-              //     />
-              //   );
-              // }
               if (language === "patchfile") {
                 // remove "patchfile" from start of string
                 const patchString = children
@@ -393,7 +400,6 @@ function ChatBot() {
                   .trim();
 
                 try {
-                  // applyPatch(goal?.guideMarkdown ?? "", patchString);
                   return <DiffComponent patchString={patchString} />;
                 } catch {}
               }
@@ -404,17 +410,6 @@ function ChatBot() {
               );
             },
             pre({ className, children, ...props }) {
-              // // If any children are <code> as a patchfile, then render a div instead
-              // const hasPatchfile = children.some((child) => {
-              //   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-              //   if (child?.props?.className === "language-patchfile") {
-              //     return true;
-              //   }
-              //   return false;
-              // });
-              // if (hasPatchfile) {
-              //   return <div className={className}>{children}</div>;
-              // }
               return (
                 <pre {...props} className={className}>
                   {children}
@@ -493,13 +488,13 @@ function ManageGuide() {
     handleNewToken
   );
 
-  useEffect(() => {
-    if (goal && goal.guideMarkdown === null && !loadingAi) {
-      initiateChatCompletion({
-        goal: goal.title,
-      });
-    }
-  }, [goal, initiateChatCompletion, loadingAi]);
+  // useEffect(() => {
+  //   if (goal && goal.guideMarkdown === null && !loadingAi) {
+  //     initiateChatCompletion({
+  //       goal: goal.title,
+  //     });
+  //   }
+  // }, [goal, initiateChatCompletion, loadingAi]);
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -507,6 +502,16 @@ function ManageGuide() {
 
   /// Text selection menu
   const mdRef = useRef<HTMLDivElement>(null);
+
+  /// Load from webpage
+  const [isOpen, setIsOpen] = useState(false);
+  const [url, setUrl] = useState("");
+  const [urlToLoad, setUrlToLoad] = useState("");
+  const {
+    faviconUrl: websiteFaviconUrl,
+    title: websiteTitle,
+    markdown: websiteMarkdown,
+  } = useWebsiteInfo(urlToLoad);
 
   if (!goal) return null;
 
@@ -535,10 +540,86 @@ function ManageGuide() {
           </Sparkles>
         </div>
 
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger>
+            <IconButton
+              tooltipText="Load from Webpage"
+              className="ml-1"
+              icon={LinkIcon}
+            />
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Load from webpage</DialogTitle>
+              <DialogDescription className="flex flex-col items-center">
+                <div className="h-4"></div>
+                <div className="flex w-full gap-2">
+                  <Input
+                    className="w-full"
+                    value={url}
+                    onValueChange={setUrl}
+                  />
+                  <Button
+                    onClick={() => {
+                      setUrlToLoad(url);
+                    }}
+                  >
+                    Load
+                  </Button>
+                </div>
+                <div className="h-4"></div>
+                {websiteFaviconUrl && websiteTitle && (
+                  <Fade className="flex w-full items-center border-b border-black/20 bg-white/20 px-2 py-0.5">
+                    <img
+                      src={websiteFaviconUrl}
+                      alt="Favicon"
+                      className="mr-2 h-4 w-4"
+                    />
+                    <span className="truncate font-bold">{websiteTitle}</span>
+                  </Fade>
+                )}
+                {websiteMarkdown && (
+                  <>
+                    <Fade className="h-64 overflow-y-scroll bg-white/20 p-2">
+                      <ReactMarkdown
+                        className={clsx({
+                          "prose prose-sm": true,
+                        })}
+                        remarkPlugins={[remarkGfm]}
+                      >
+                        {websiteMarkdown}
+                      </ReactMarkdown>
+                    </Fade>
+                    <div className="h-4"></div>
+                    <Button
+                      onClick={() => {
+                        const conf = window.confirm(
+                          "Are you sure you want to set this as the guide? The current guide will be overwritten."
+                        );
+                        if (!conf) return;
+                        setGoal((prev) => {
+                          if (!prev) return prev;
+                          return {
+                            ...prev,
+                            guideMarkdown: websiteMarkdown,
+                          };
+                        });
+                        setIsOpen(false);
+                      }}
+                    >
+                      Set as Guide
+                    </Button>
+                  </>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
+
         <IconButton
           icon={isEditing ? SolidPencilSquareIcon : PencilSquareIcon}
           className={clsx({
-            "ml-0.5": true,
+            "ml-1": true,
             "text-gray-500": !isEditing,
           })}
           tooltipText={isEditing ? "Done Editing" : "Edit"}

@@ -25,7 +25,7 @@ function HomePage() {
   return (
     <div className="flex h-screen flex-col items-center bg-gradient-to-r from-pink-200 to-sky-200">
       <Navbar />
-      <SidePadding className=" justify-between overflow-y-scroll p-8">
+      <SidePadding className="justify-between overflow-y-scroll p-8">
         <div className="h-8"></div>
         <div className="p-8">
           <div className="text-xl font-bold">{"Things I'm learning"}</div>
