@@ -37,19 +37,19 @@ export function Navbar() {
       <div className="flex justify-between px-4 py-2 md:px-8">
         <div className="flex items-center gap-2 md:gap-6">
           <button
-            className="mr-2 flex items-center gap-1.5 font-medium hover:text-gray-600"
+            className="mr-2 flex items-center gap-1.5 font-semibold hover:text-gray-600"
             onClick={() => {
               router.push("/").catch(handleError);
             }}
           >
-            <HomeIcon className="s-5 w-5" />
+            <HomeIcon strokeWidth={2} className="s-5 w-5" />
             Home
           </button>
           {showHelp && (
             <Dialog>
               <DialogTrigger>
-                <button className="mr-2 flex items-center gap-1.5 font-medium text-gray-700 hover:text-gray-500">
-                  <InformationCircleIcon className="s-5 w-5" />
+                <button className="mr-2 flex items-center gap-1.5 font-semibold hover:text-gray-600">
+                  <InformationCircleIcon strokeWidth={2} className="s-5 w-5" />
                   Help
                 </button>
               </DialogTrigger>
@@ -83,7 +83,9 @@ export function Navbar() {
 
         <div className="flex items-center">
           <div className="flex items-center gap-4">
-            <div className="whitespace-nowrap">{user?.fullName}</div>
+            <div className="whitespace-nowrap font-semibold">
+              {user?.fullName}
+            </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div className="flex cursor-pointer items-center gap-1">
