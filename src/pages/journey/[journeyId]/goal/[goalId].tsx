@@ -75,6 +75,8 @@ import { useWebsiteInfo } from "../../../../hooks/useWebsiteInfo";
 import { Input } from "../../../../components/base/Input";
 import { Fade } from "../../../../components/animate/Fade";
 import Head from "next/head";
+import { LocalStorageKey } from "../../../../utils/localstorage";
+import { LocalStorage } from "../../../../utils/localstorage";
 
 interface HeadingDropdownProps {
   sectionName: string;
@@ -629,6 +631,13 @@ function ManageGuide() {
             setIsEditing((prev) => !prev);
           }}
         />
+
+        {goal.guideMarkdown &&
+          LocalStorage.get(LocalStorageKey.HidePromptSelectText) !== true && (
+            <Fade className="ml-4 text-sm font-light text-gray-400">
+              Try selecting some text!
+            </Fade>
+          )}
       </div>
       <div className="h-4"></div>
       <div
