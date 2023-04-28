@@ -45,7 +45,7 @@ function HomePage() {
                   init(journey.id);
 
                   router
-                    .push(`/journey/${journey.id}/goal/${journey.goal.id}`)
+                    .push(`/journey/${journey.id}/goal/${journey.goalId}`)
                     .catch(handleError);
                 }}
               >
