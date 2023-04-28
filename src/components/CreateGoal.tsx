@@ -17,6 +17,7 @@ import { Fade } from "./animate/Fade";
 import { useChatCompletion } from "../hooks/useChatCompletion";
 import { useAtom } from "jotai";
 import { loadingAiAtom } from "../utils/jotai";
+import toast from "react-hot-toast";
 
 interface TypingAnimationProps {
   text: string;
@@ -361,22 +362,27 @@ export function CreateGoal() {
             send({ type: "REFINE_MORE" });
           }}
           onComplete={() => {
-            mutateAsync({
-              goalTitle: state.context.goal,
-            })
-              .then((res) => {
-                if (parentGoalId) {
-                  addChild(parentGoalId, res.id);
-                } else {
-                  init(res.id);
+            toast
+              .promise(
+                mutateAsync({
+                  goalTitle: state.context.goal,
+                }).then((res) => {
+                  if (parentGoalId) {
+                    addChild(parentGoalId, res.id);
+                  } else {
+                    init(res.id);
+                  }
+                  router
+                    .push(`/journey/${res.id}/goal/${res.goalId}`)
+                    .catch(handleError);
+                }),
+                {
+                  loading: "Creating goal...",
+                  success: "Goal created!",
+                  error: "Failed to create goal.",
                 }
-                router
-                  .push(`/journey/${res.id}/goal/${res.goalId}`)
-                  .catch(handleError);
-              })
-              .catch((err) => {
-                handleError(err);
-              });
+              )
+              .catch(handleError);
           }}
         />
       );

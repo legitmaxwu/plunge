@@ -13,7 +13,7 @@ import {
 } from "react";
 
 import { useQueryParam } from "../../../../hooks/useQueryParam";
-import { api } from "../../../../utils/api";
+import { type RouterOutputs, api } from "../../../../utils/api";
 import {
   ArrowTopRightOnSquareIcon,
   ChevronDownIcon,
@@ -753,8 +753,9 @@ const GoalPage: NextPage = () => {
       refetchOnWindowFocus: false,
     }
   );
-  useAutoSave({
-    queryOutput: queryOutput,
+
+  useAutoSave<RouterOutputs["goal"]["get"]>({
+    remoteData: queryOutput.data,
     saveFunction: updateGoal,
     data: goal,
     setData: setGoal,

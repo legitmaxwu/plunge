@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { authenticatedProcedure, createTRPCRouter } from "~/server/api/trpc";
 import { getLexoRankIndices } from "../../lib/lexoRank";
+import { and, asc, desc, eq } from "drizzle-orm";
+import { links, goals } from "../../db/schema";
+import { createId } from "../../lib/id";
 
 export const linkRouter = createTRPCRouter({
   getAllUnderGoal: authenticatedProcedure
@@ -10,20 +13,22 @@ export const linkRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
+      const { parentGoalId } = input;
       const userId = ctx.auth.userId;
-      return ctx.prisma.link.findMany({
-        where: {
-          parentId: input.parentGoalId,
-          parent: {
-            userId,
+      const results = await ctx.db
+        .select()
+        .from(links)
+        .leftJoin(goals, eq(links.parentId, goals.id))
+        .where(and(eq(links.parentId, parentGoalId), eq(goals.userId, userId)))
+        .orderBy(asc(links.lexoRankIndex));
+
+      return results.map((row) => {
+        return {
+          ...row.links,
+          goal: {
+            ...row.goals,
           },
-        },
-        orderBy: {
-          lexoRankIndex: "asc",
-        },
-        include: {
-          child: true,
-        },
+        };
       });
     }),
 
@@ -37,14 +42,11 @@ export const linkRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.auth.userId;
       // TODO: Check if user is allowed to update this link
-      return ctx.prisma.link.update({
-        where: {
-          id: input.id,
-        },
-        data: {
-          lexoRankIndex: input.lexoRankIndex,
-        },
-      });
+      const result = await ctx.db
+        .update(links)
+        .set({ lexoRankIndex: input.lexoRankIndex })
+        .where(eq(links.id, input.id));
+      return result;
     }),
 
   createChildren: authenticatedProcedure
@@ -58,45 +60,43 @@ export const linkRouter = createTRPCRouter({
       const userId = ctx.auth.userId;
       const { parentGoalId, goalTitles } = input;
 
-      const parentGoal = await ctx.prisma.goal.findFirst({
-        where: {
-          id: input.parentGoalId,
-          userId,
-        },
-        include: {
-          children: {
-            orderBy: {
-              lexoRankIndex: "desc",
-            },
-          },
-        },
-      });
+      const goalsRet = await ctx.db
+        .select()
+        .from(goals)
+        .where(and(eq(goals.id, input.parentGoalId), eq(goals.userId, userId)))
+        .leftJoin(links, eq(goals.id, links.parentId))
+        .orderBy(desc(links.lexoRankIndex))
+        .limit(1);
 
+      const parentGoal = goalsRet[0];
       if (!parentGoal) {
         throw new Error("Parent goal not found");
       }
 
+      console.log(parentGoal);
+
       const lexoRankIndices = getLexoRankIndices(
-        parentGoal.children[0]?.lexoRankIndex ?? null,
+        parentGoal.links?.lexoRankIndex ?? null,
         goalTitles.length
       );
 
       const promises = goalTitles.map((title, index) => {
-        return ctx.prisma.link.create({
-          data: {
+        return ctx.db.transaction(async (tx) => {
+          const newGoalId = createId();
+          const newLinkId = createId();
+
+          await tx.insert(goals).values({
+            id: newGoalId,
+            title,
+            userId,
+          });
+
+          await tx.insert(links).values({
+            id: newLinkId,
             lexoRankIndex: lexoRankIndices[index] ?? "",
-            parent: {
-              connect: {
-                id: parentGoalId,
-              },
-            },
-            child: {
-              create: {
-                title,
-                userId,
-              },
-            },
-          },
+            parentId: parentGoalId,
+            childId: newGoalId,
+          });
         });
       });
 

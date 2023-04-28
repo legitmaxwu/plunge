@@ -47,23 +47,6 @@ const handler = async (req: NextRequest): Promise<Response> => {
     })
     .parse(await req.json());
 
-  console.log([
-    ...messages,
-    ...(comments && currentOptions
-      ? [
-          {
-            role: "user" as const,
-            content: `You have already suggested the following options:\n\n${currentOptions.join(
-              "\n"
-            )}\n\nI don't like any of them.\n\n${comments}`,
-          },
-        ]
-      : []),
-    {
-      role: "user",
-      content: goal,
-    },
-  ]);
   const stream = await streamChatCompletion(
     [
       ...messages,

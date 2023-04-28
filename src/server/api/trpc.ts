@@ -16,8 +16,6 @@
  */
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 
-import { prisma } from "~/server/db";
-
 type CreateContextOptions = Record<string, never>;
 
 /**
@@ -32,10 +30,11 @@ type CreateContextOptions = Record<string, never>;
  */
 
 import { getAuth } from "@clerk/nextjs/server";
+import { db } from "../db/db";
 
 const createInnerTRPCContext = (_opts: CreateContextOptions) => {
   return {
-    prisma,
+    db,
   };
 };
 

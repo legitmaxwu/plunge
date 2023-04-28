@@ -87,8 +87,6 @@ function RenderGoalItem(props: RenderGoalItemProps) {
       return;
     }
 
-    setNewGoal("");
-    setAdding(false);
     toast
       .promise(
         createSubgoal({
@@ -98,6 +96,8 @@ function RenderGoalItem(props: RenderGoalItemProps) {
           await utils.link.getAllUnderGoal.invalidate({
             parentGoalId: goalId,
           });
+          setNewGoal("");
+          setAdding(false);
         }),
         {
           loading: "Creating subgoal...",
@@ -106,7 +106,6 @@ function RenderGoalItem(props: RenderGoalItemProps) {
         }
       )
       .catch(handleError);
-    setNewGoal("");
   }, [newGoal, goalId, utils, createSubgoal]);
 
   // DELETING SUBGOALS
@@ -129,27 +128,26 @@ function RenderGoalItem(props: RenderGoalItemProps) {
       // Get the data from the queryCache
       const prevData = query.getData({ parentGoalId: goalId });
 
-      const newLinks =
-        prevData
-          ?.map((o) => {
-            if (o.id === id) {
-              return {
-                ...o,
-                lexoRankIndex: lexoRankIndex ?? o.lexoRankIndex,
-              };
-            } else {
-              return o;
-            }
-          })
-          .sort((a, b) => {
-            if (a.lexoRankIndex < b.lexoRankIndex) {
-              return -1;
-            } else if (a.lexoRankIndex > b.lexoRankIndex) {
-              return 1;
-            } else {
-              return 0;
-            }
-          }) ?? [];
+      const newLinks = prevData;
+      // ?.map((o) => {
+      //   if (o.id === id) {
+      //     return {
+      //       ...o,
+      //       lexoRankIndex: lexoRankIndex ?? o.lexoRankIndex,
+      //     };
+      //   } else {
+      //     return o;
+      //   }
+      // })
+      // .sort((a, b) => {
+      //   if (a.lexoRankIndex < b.lexoRankIndex) {
+      //     return -1;
+      //   } else if (a.lexoRankIndex > b.lexoRankIndex) {
+      //     return 1;
+      //   } else {
+      //     return 0;
+      //   }
+      // }) ?? [];
 
       query.setData({ parentGoalId: goalId }, (goal) => {
         if (!goal) return goal;
@@ -361,23 +359,26 @@ function RenderGoalItem(props: RenderGoalItemProps) {
           {/* {!!links?.length && <div className="h-1"></div>} */}
           {(highlightNewSubgoal || adding) && (
             <div
-              className={clsx({
-                "mb-1 ml-2.5 flex w-full flex-1 items-center justify-between pl-1 text-left text-sm":
-                  true,
-                "bg-white/30": !highlightNewSubgoal,
-                "bg-blue-50": highlightNewSubgoal,
-              })}
+              className={clsx(
+                {
+                  "mb-1 ml-2.5 flex items-center justify-between pl-1 text-left text-sm":
+                    true,
+                  "bg-white/30": !highlightNewSubgoal,
+                  "bg-blue-50": highlightNewSubgoal,
+                },
+                {
+                  "bg-gray-200": createSubgoalLoading,
+                }
+              )}
             >
               <ReactTextareaAutosize
                 ref={addRef}
                 minRows={1}
                 autoFocus
-                disabled={highlightNewSubgoal}
+                disabled={highlightNewSubgoal || createSubgoalLoading}
                 className={clsx({
-                  "resize-none rounded-sm bg-transparent py-0 outline-none":
+                  "w-full resize-none rounded-sm bg-transparent py-0 outline-none":
                     true,
-                  "ring-1 ring-gray-300 focus:ring-gray-500":
-                    createSubgoalLoading,
                   // "bg-blue-50": isViewingThisGoal && !!newSubgoal,
                 })}
                 placeholder="Name of subgoal"
@@ -387,6 +388,7 @@ function RenderGoalItem(props: RenderGoalItemProps) {
                 }}
                 onKeyPress={(e) => {
                   if (e.key === "Enter") {
+                    e.preventDefault();
                     handleCreateSubgoal();
                   }
                 }}
