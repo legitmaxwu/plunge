@@ -4,12 +4,15 @@
  *
  * We also create a few inference helpers for input and output types.
  */
-import { httpBatchLink, loggerLink } from "@trpc/client";
+import { httpBatchLink, loggerLink, splitLink } from "@trpc/client";
 import { createTRPCNext } from "@trpc/next";
 import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
 import superjson from "superjson";
 
 import { type AppRouter } from "~/server/api/root";
+import { type FunctionsAppRouter } from "../server/api/functionsRoot";
+
+type CollectiveRouter = AppRouter & FunctionsAppRouter;
 
 const getBaseUrl = () => {
   if (typeof window !== "undefined") return ""; // browser should use relative url
@@ -18,7 +21,7 @@ const getBaseUrl = () => {
 };
 
 /** A set of type-safe react-query hooks for your tRPC API. */
-export const api = createTRPCNext<AppRouter>({
+export const api = createTRPCNext<CollectiveRouter>({
   config() {
     return {
       /**
@@ -39,8 +42,22 @@ export const api = createTRPCNext<AppRouter>({
             process.env.NODE_ENV === "development" ||
             (opts.direction === "down" && opts.result instanceof Error),
         }),
-        httpBatchLink({
-          url: `${getBaseUrl()}/api/trpc`,
+        splitLink({
+          condition(op) {
+            // Check if we should use serverless functions
+            const topLevelRoute = op.path.split(".")[0];
+
+            if (!topLevelRoute) return false;
+
+            const functionRoutes = ["public"];
+            return functionRoutes.includes(topLevelRoute);
+          },
+          true: httpBatchLink({
+            url: `${getBaseUrl()}/api/trpc-functions`,
+          }),
+          false: httpBatchLink({
+            url: `${getBaseUrl()}/api/trpc`,
+          }),
         }),
       ],
     };
@@ -58,11 +75,11 @@ export const api = createTRPCNext<AppRouter>({
  *
  * @example type HelloInput = RouterInputs['example']['hello']
  */
-export type RouterInputs = inferRouterInputs<AppRouter>;
+export type RouterInputs = inferRouterInputs<CollectiveRouter>;
 
 /**
  * Inference helper for outputs.
  *
  * @example type HelloOutput = RouterOutputs['example']['hello']
  */
-export type RouterOutputs = inferRouterOutputs<AppRouter>;
+export type RouterOutputs = inferRouterOutputs<CollectiveRouter>;

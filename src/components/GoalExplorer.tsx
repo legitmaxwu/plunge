@@ -53,6 +53,7 @@ function RenderGoalItem(props: RenderGoalItemProps) {
   const { goalId, parentGoalId } = props;
 
   const journeyId = useQueryParam("journeyId", "string");
+  const router = useRouter();
 
   const { data: journey } = api.journey.get.useQuery({ id: journeyId ?? "" });
 
@@ -92,12 +93,17 @@ function RenderGoalItem(props: RenderGoalItemProps) {
         createSubgoal({
           parentGoalId: goalId,
           goalTitles: [newGoal],
-        }).then(async () => {
+        }).then(async (res) => {
           await utils.link.getAllUnderGoal.invalidate({
             parentGoalId: goalId,
           });
           setNewGoal("");
           setAdding(false);
+          if (res[0] && journeyId) {
+            router
+              .push(`/journey/${journeyId}/goal/${res[0]?.goalId}`)
+              .catch(handleError);
+          }
         }),
         {
           loading: "Creating subgoal...",
@@ -106,7 +112,14 @@ function RenderGoalItem(props: RenderGoalItemProps) {
         }
       )
       .catch(handleError);
-  }, [newGoal, goalId, utils, createSubgoal]);
+  }, [
+    newGoal,
+    createSubgoal,
+    goalId,
+    utils.link.getAllUnderGoal,
+    journeyId,
+    router,
+  ]);
 
   // DELETING SUBGOALS
   const { mutateAsync: deleteGoal } = api.goal.delete.useMutation({});
@@ -209,8 +222,6 @@ function RenderGoalItem(props: RenderGoalItemProps) {
 
   const [hovering, setHovering] = useState(false);
 
-  const router = useRouter();
-
   const [adding, setAdding] = useState(false);
   const addRef = useClickOutside<HTMLTextAreaElement>(() => {
     setAdding(false);
@@ -283,6 +294,7 @@ function RenderGoalItem(props: RenderGoalItemProps) {
         <button
           className={clsx({
             "w-full flex-1 shrink-0 text-left text-sm": true,
+            "hover:text-gray-700": !isViewingThisGoal,
             "font-semibold": isViewingThisGoal,
           })}
           onClick={(e) => {

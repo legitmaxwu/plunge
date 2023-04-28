@@ -97,6 +97,11 @@ export const linkRouter = createTRPCRouter({
             parentId: parentGoalId,
             childId: newGoalId,
           });
+
+          return {
+            linkId: newLinkId,
+            goalId: newGoalId,
+          };
         });
       });
 

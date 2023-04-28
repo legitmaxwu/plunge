@@ -550,7 +550,7 @@ function ManageGuide() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Load from webpage</DialogTitle>
+              <DialogTitle>Load text from webpage</DialogTitle>
               <DialogDescription className="flex flex-col items-center">
                 <div className="h-4"></div>
                 <div className="flex w-full gap-2">
@@ -558,13 +558,14 @@ function ManageGuide() {
                     className="w-full"
                     value={url}
                     onValueChange={setUrl}
+                    placeholder="https://example.com"
                   />
                   <Button
                     onClick={() => {
                       setUrlToLoad(url);
                     }}
                   >
-                    Load
+                    Preview
                   </Button>
                 </div>
                 <div className="h-4"></div>
@@ -771,6 +772,10 @@ const GoalPage: NextPage = () => {
     setNextGuide(null);
   }, [goalId, setNextGuide]);
 
+  useEffect(() => {
+    setGoal(undefined);
+  }, [goalId, setGoal]);
+
   if (!goalId) {
     return <div>No goal id</div>;
   }
@@ -795,39 +800,44 @@ const GoalPage: NextPage = () => {
         </div>
         <div className="w-px shrink-0 bg-black/20"></div>
         <div className="flex h-full flex-1 flex-col">
-          <ScrollArea className="h-full w-full p-8 py-0">
-            <div className="h-8"></div>
-            <div className="w-full text-2xl font-bold">
-              {goal ? (
-                <ReactTextareaAutosize
-                  value={goal.title}
-                  className={clsx({
-                    "mr-2 w-full resize-none rounded-sm border border-transparent bg-gradient-to-r from-pink-700 via-purple-700 to-sky-700 bg-clip-text text-transparent caret-black outline-none transition hover:border-gray-400":
-                      true,
-                    "focus:border-black": true,
-                  })}
-                  onChange={(e) => {
-                    setGoal((prev) => {
-                      if (!prev) return prev;
-                      return {
-                        ...prev,
-                        title: e.target.value,
-                      };
-                    });
-                  }}
-                />
-              ) : (
-                <div className="w-1/2 animate-pulse rounded-sm bg-black/5 text-xl">
-                  &nbsp;
+          {goal ? (
+            <Fade className="h-full w-full">
+              <ScrollArea className="h-full w-full p-8 py-0">
+                <div className="h-8"></div>
+                <div className="w-full text-2xl font-bold">
+                  <ReactTextareaAutosize
+                    value={goal.title}
+                    className={clsx({
+                      "mr-2 w-full resize-none rounded-sm border border-transparent bg-gradient-to-r from-pink-700 via-purple-700 to-sky-700 bg-clip-text text-transparent caret-black outline-none transition hover:border-gray-400":
+                        true,
+                      "focus:border-black": true,
+                    })}
+                    onChange={(e) => {
+                      setGoal((prev) => {
+                        if (!prev) return prev;
+                        return {
+                          ...prev,
+                          title: e.target.value,
+                        };
+                      });
+                    }}
+                  />
                 </div>
-              )}
-            </div>
 
-            <div className="h-8"></div>
-            <ManageGuide />
+                <div className="h-8"></div>
+                <ManageGuide />
 
-            <div className="h-8"></div>
-          </ScrollArea>
+                <div className="h-8"></div>
+              </ScrollArea>
+            </Fade>
+          ) : (
+            <div />
+            // <Fade className="p-8">
+            //   <div className="w-1/2 animate-pulse rounded-sm bg-black/5 text-xl">
+            //     &nbsp;
+            //   </div>
+            // </Fade>
+          )}
         </div>
         <div className="w-px shrink-0 bg-black/20"></div>
         <div className="h-full md:w-2/5">

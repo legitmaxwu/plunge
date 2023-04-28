@@ -55,10 +55,6 @@ export const useAutoSave = <TData extends { id: string }>({
   useEffect(() => {
     if (equal(data, prevData)) return;
 
-    console.log(prevData);
-    console.log(data);
-    console.log("+===");
-
     if (data && remoteData && shouldSave(remoteData, data)) {
       debouncedSave(data);
     }
