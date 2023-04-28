@@ -1,11 +1,8 @@
-import { createNextApiHandler } from "@trpc/server/adapters/next";
-
-import { env } from "~/env.mjs";
-import { createTRPCContext } from "~/server/api/trpc";
 import { appRouter } from "~/server/api/root";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
-import { type NextApiRequest } from "next";
 import { type NextRequest } from "next/server";
+import { getAuth } from "@clerk/nextjs/server";
+import { db } from "../../../server/db/db";
 
 export const config = {
   runtime: "edge",
@@ -32,6 +29,9 @@ export default async function handler(req: NextRequest) {
     endpoint: "/api/trpc",
     router: appRouter,
     req,
-    createContext: () => createTRPCContext({ req }),
+    createContext: () => ({
+      auth: getAuth(req),
+      db: db,
+    }),
   });
 }
