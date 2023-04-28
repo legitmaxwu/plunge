@@ -16,7 +16,7 @@ const LandingPage = () => {
       </Head>
       <div className="text-center">
         <h1 className="text-6xl font-bold">Prereq</h1>
-        <p className="mt-4 text-2xl">A place for learning new things.</p>
+        <p className="mt-4 text-2xl">A place for self-study.</p>
         <div className="h-16"></div>
 
         <SignIn />

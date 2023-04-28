@@ -74,6 +74,7 @@ import { CreateDocumentGoal } from "../../../../components/CreateDocumentGoal";
 import { useWebsiteInfo } from "../../../../hooks/useWebsiteInfo";
 import { Input } from "../../../../components/base/Input";
 import { Fade } from "../../../../components/animate/Fade";
+import Head from "next/head";
 
 interface HeadingDropdownProps {
   sectionName: string;
@@ -781,74 +782,79 @@ const GoalPage: NextPage = () => {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-gradient-to-r from-pink-200 to-sky-200">
-      <Navbar />
-      <div className="flex w-full flex-1 overflow-hidden">
-        <div className="h-full w-1/5 max-w-sm shrink-0">
-          <ScrollArea className="h-full w-full p-8 py-0">
-            <div className="h-8"></div>
-            <div className="flex items-center">
-              <div className="border border-transparent text-2xl font-bold text-black">
-                Explorer
-              </div>
-            </div>
-            <div className="h-4"></div>
-
-            <GoalExplorer />
-            <div className="h-8"></div>
-          </ScrollArea>
-        </div>
-        <div className="w-px shrink-0 bg-black/20"></div>
-        <div className="flex h-full flex-1 flex-col">
-          {goal ? (
-            <Fade className="h-full w-full">
-              <ScrollArea className="h-full w-full p-8 py-0">
-                <div className="h-8"></div>
-                <div className="w-full text-2xl font-bold">
-                  <ReactTextareaAutosize
-                    value={goal.title}
-                    className={clsx({
-                      "mr-2 w-full resize-none rounded-sm border border-transparent bg-gradient-to-r from-pink-700 via-purple-700 to-sky-700 bg-clip-text text-transparent caret-black outline-none transition hover:border-gray-400":
-                        true,
-                      "focus:border-black": true,
-                    })}
-                    onChange={(e) => {
-                      setGoal((prev) => {
-                        if (!prev) return prev;
-                        return {
-                          ...prev,
-                          title: e.target.value,
-                        };
-                      });
-                    }}
-                  />
+    <>
+      <Head>
+        <title>Prereq - {goal?.title}</title>
+      </Head>
+      <div className="flex h-screen flex-col bg-gradient-to-r from-pink-200 to-sky-200">
+        <Navbar />
+        <div className="flex w-full flex-1 overflow-hidden">
+          <div className="h-full w-1/5 max-w-sm shrink-0">
+            <ScrollArea className="h-full w-full p-8 py-0">
+              <div className="h-8"></div>
+              <div className="flex items-center">
+                <div className="border border-transparent text-2xl font-bold text-black">
+                  Explorer
                 </div>
+              </div>
+              <div className="h-4"></div>
 
-                <div className="h-8"></div>
-                <ManageGuide />
+              <GoalExplorer />
+              <div className="h-8"></div>
+            </ScrollArea>
+          </div>
+          <div className="w-px shrink-0 bg-black/20"></div>
+          <div className="flex h-full flex-1 flex-col">
+            {goal ? (
+              <Fade className="h-full w-full">
+                <ScrollArea className="h-full w-full p-8 py-0">
+                  <div className="h-8"></div>
+                  <div className="w-full text-2xl font-bold">
+                    <ReactTextareaAutosize
+                      value={goal.title}
+                      className={clsx({
+                        "mr-2 w-full resize-none rounded-sm border border-transparent bg-gradient-to-r from-pink-700 via-purple-700 to-sky-700 bg-clip-text text-transparent caret-black outline-none transition hover:border-gray-400":
+                          true,
+                        "focus:border-black": true,
+                      })}
+                      onChange={(e) => {
+                        setGoal((prev) => {
+                          if (!prev) return prev;
+                          return {
+                            ...prev,
+                            title: e.target.value,
+                          };
+                        });
+                      }}
+                    />
+                  </div>
 
-                <div className="h-8"></div>
-              </ScrollArea>
-            </Fade>
-          ) : (
-            <div />
-            // <Fade className="p-8">
-            //   <div className="w-1/2 animate-pulse rounded-sm bg-black/5 text-xl">
-            //     &nbsp;
-            //   </div>
-            // </Fade>
-          )}
-        </div>
-        <div className="w-px shrink-0 bg-black/20"></div>
-        <div className="h-full md:w-2/5">
-          <ScrollArea className="h-full w-full p-8 py-0">
-            <div className="h-8"></div>
-            <ChatBot />
-            <div className="h-8"></div>
-          </ScrollArea>
+                  <div className="h-8"></div>
+                  <ManageGuide />
+
+                  <div className="h-8"></div>
+                </ScrollArea>
+              </Fade>
+            ) : (
+              <div />
+              // <Fade className="p-8">
+              //   <div className="w-1/2 animate-pulse rounded-sm bg-black/5 text-xl">
+              //     &nbsp;
+              //   </div>
+              // </Fade>
+            )}
+          </div>
+          <div className="w-px shrink-0 bg-black/20"></div>
+          <div className="h-full md:w-2/5">
+            <ScrollArea className="h-full w-full p-8 py-0">
+              <div className="h-8"></div>
+              <ChatBot />
+              <div className="h-8"></div>
+            </ScrollArea>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

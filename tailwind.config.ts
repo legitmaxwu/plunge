@@ -19,6 +19,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Source Sans Pro", ...defaultTheme.fontFamily.sans],
+        mono: ["Source Code Pro", ...defaultTheme.fontFamily.mono],
       },
       spacing: {
         120: "30rem",
