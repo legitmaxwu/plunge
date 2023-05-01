@@ -142,7 +142,7 @@ function NewSubgoalButton(props: NewSubgoalButtonProps) {
   return (
     <button
       {...rest}
-      className="mb-2 mr-2 block rounded-sm bg-white/40 px-3 py-2 text-left hover:bg-white/70"
+      className="mb-2 block rounded-sm bg-white/40 px-3 py-1.5 text-left hover:bg-white/70"
       onMouseEnter={() => {
         setNewSubgoal(subgoal);
       }}
