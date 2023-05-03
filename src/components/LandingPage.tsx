@@ -11,12 +11,9 @@ const LandingPage = () => {
   const router = useRouter();
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-gray-200 via-pink-300 to-sky-200">
-      <Head>
-        <title>Prereq - Landing Page</title>
-      </Head>
       <div className="text-center">
-        <h1 className="text-6xl font-bold">Prereq</h1>
-        <p className="mt-4 text-2xl">A place for self-study.</p>
+        <h1 className="text-6xl font-bold">Plunge</h1>
+        <p className="mt-4 text-2xl">Dive down the rabbit hole {":)"}.</p>
         <div className="h-16"></div>
 
         <SignIn />

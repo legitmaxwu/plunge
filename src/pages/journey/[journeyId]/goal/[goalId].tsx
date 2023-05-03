@@ -793,7 +793,7 @@ const GoalPage: NextPage = () => {
   return (
     <>
       <Head>
-        <title>Prereq - {goal?.title}</title>
+        <title>Plunge - {goal?.title}</title>
       </Head>
       <div className="flex h-screen flex-col bg-gradient-to-r from-pink-200 to-sky-200">
         <Navbar />

@@ -39,7 +39,7 @@ const MyApp: AppType = (props) => {
   return (
     <>
       <Head>
-        <title>Prereq</title>
+        <title>Plunge</title>
         <meta name="description" content="A place for self-study." />
         <link rel="icon" href="/favicon.ico" />
         <link

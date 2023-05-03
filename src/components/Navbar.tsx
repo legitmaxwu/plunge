@@ -55,7 +55,7 @@ export function Navbar() {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>How to use Prereq</DialogTitle>
+                  <DialogTitle>How to use Plunge</DialogTitle>
                   <DialogDescription>
                     <div className="h-6"></div>
                     <h2 className="mb-1 font-medium underline">Explorer</h2>
