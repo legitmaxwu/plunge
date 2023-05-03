@@ -23,7 +23,7 @@ function HomePage() {
   const nothingCreated = journeys?.length === 0;
 
   return (
-    <div className="flex h-screen flex-col items-center bg-gradient-to-r from-pink-200 to-sky-200">
+    <div className="flex h-screen flex-col items-center bg-gradient-to-r from-sky-200 to-blue-200">
       <Navbar />
       <SidePadding className="justify-between overflow-y-scroll p-8">
         <div className="h-8"></div>

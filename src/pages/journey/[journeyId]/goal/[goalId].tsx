@@ -795,7 +795,7 @@ const GoalPage: NextPage = () => {
       <Head>
         <title>Plunge - {goal?.title}</title>
       </Head>
-      <div className="flex h-screen flex-col bg-gradient-to-r from-pink-200 to-sky-200">
+      <div className="flex h-screen flex-col bg-gradient-to-r from-sky-200 to-blue-200">
         <Navbar />
         <div className="flex w-full flex-1 overflow-hidden">
           <div className="h-full w-1/5 max-w-sm shrink-0">
@@ -822,7 +822,7 @@ const GoalPage: NextPage = () => {
                     <ReactTextareaAutosize
                       value={goal.title}
                       className={clsx({
-                        "mr-2 w-full resize-none rounded-sm border border-transparent bg-gradient-to-r from-pink-700 via-purple-700 to-sky-700 bg-clip-text text-transparent caret-black outline-none transition hover:border-gray-400":
+                        "mr-2 w-full resize-none rounded-sm border border-transparent bg-gradient-to-r from-cyan-600 via-sky-700 to-blue-700 bg-clip-text text-transparent caret-black outline-none transition hover:border-gray-400":
                           true,
                         "focus:border-black": true,
                       })}

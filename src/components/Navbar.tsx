@@ -113,7 +113,7 @@ export function Navbar() {
           </div>
         </div>
       </div>
-      <div className="h-px bg-gradient-to-r from-pink-300 to-sky-300"></div>
+      <div className="h-px bg-gradient-to-r from-sky-300 to-blue-300"></div>
     </div>
   );
 }

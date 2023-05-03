@@ -6,7 +6,7 @@ import { CreateGoal } from "../../components/CreateGoal";
 
 const Create: NextPage = () => {
   return (
-    <div className="h-screen bg-gradient-to-r from-pink-200 to-sky-200">
+    <div className="h-screen bg-gradient-to-r from-sky-200 to-blue-200">
       <div className="flex h-full flex-col items-center justify-center">
         <div className="h-2"></div>
         <CreateGoal />
