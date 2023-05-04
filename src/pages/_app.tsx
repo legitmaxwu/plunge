@@ -17,6 +17,7 @@ import { Toaster } from "react-hot-toast";
 import Head from "next/head";
 import { useMediaQuery } from "../hooks/useMediaQuery";
 import { TooltipProvider } from "../components/base/Tooltip";
+import ReactPlayer from "react-player";
 
 const RenderComponent: AppType = (props) => {
   const { Component, pageProps } = props;
@@ -80,6 +81,14 @@ const MyApp: AppType = (props) => {
                   dive into your curiosities {":)"}
                 </div>
 
+                <div className="h-8"></div>
+                <div className="aspect-video">
+                  <ReactPlayer
+                    width="100%"
+                    height="100%"
+                    url="https://www.youtube.com/watch?v=JX49bTgRy1w"
+                  />
+                </div>
                 <div className="h-8"></div>
                 <div className="max-w-sm">
                   Welcome! Please use a device with a larger screen to access
