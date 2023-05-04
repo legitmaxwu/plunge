@@ -38,7 +38,7 @@ The questions should be under 15 words and end with a question mark. They should
 
 Each follow-up question is in its own Markdown list element, beginning and ending with "҂". 
 
-Formatting Example (Do not pay attention to the content of the questions):
+Formatting Example (Do not pay attention to the content of the questions. Follow the format closely!):
 
 - ҂How does ... work?҂
 - ҂What are the different types of ...?҂

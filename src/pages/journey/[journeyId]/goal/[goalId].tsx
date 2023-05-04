@@ -136,46 +136,77 @@ function HeadingDropdown(props: HeadingDropdownProps) {
   );
 }
 
-type NewSubgoalButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+type NewSubgoalButtonProps = {
   subgoal: string;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => Promise<void>;
 };
 
 function NewSubgoalButton(props: NewSubgoalButtonProps) {
-  const { subgoal, onClick, ...rest } = props;
+  const { subgoal, onClick } = props;
 
-  const goalId = useQueryParam("goalId", "string");
+  const router = useRouter();
+  const goalId = useQueryParam("goalId", "string") ?? "";
+  const journeyId = useQueryParam("journeyId", "string") ?? "";
   const [newSubgoal, setNewSubgoal] = useAtom(newSubgoalAtom);
-  const [loading, setLoading] = useState(false);
+  const [loadingAi, setLoadingAi] = useAtom(loadingAiAtom);
 
+  const util = api.useContext();
+  const { mutateAsync: createPrereqs, isLoading } =
+    api.link.createChildren.useMutation({});
+
+  const disabled = isLoading || loadingAi;
   return (
     <div className="-ml-6 mb-2">
-      <Tooltip>
-        <TooltipTrigger>
-          <button
-            {...rest}
-            onClick={() => {
-              // if onclick returns a promise,
-            }}
-            className="block rounded-sm bg-white/40 px-3 py-1.5 text-left hover:bg-white/70"
-            onMouseEnter={() => {
-              if (!goalId) return;
-
-              setNewSubgoal({
+      <button
+        disabled={disabled}
+        onClick={() => {
+          toast
+            .promise(
+              createPrereqs({
                 parentGoalId: goalId,
-                subgoalTitle: subgoal,
-              });
-            }}
-            onMouseLeave={() => {
-              setNewSubgoal(null);
-            }}
-          >
-            {subgoal}
-          </button>
-        </TooltipTrigger>
-        <TooltipContent side="left">
-          <div>Dive into this question</div>
-        </TooltipContent>
-      </Tooltip>
+                goalTitles: [subgoal],
+              }).then(async (res) => {
+                setNewSubgoal(null);
+                await util.link.getAllUnderGoal.invalidate({
+                  parentGoalId: goalId,
+                });
+                // if (res[0] && journeyId) {
+                //   await router
+                //     .push(`/journey/${journeyId}/goal/${res[0]?.goalId}`)
+                //     .catch(handleError);
+                // }
+              }),
+              {
+                loading: "Creating question...",
+                success: "Question created!",
+                error: "Error creating question",
+              }
+            )
+            .catch(handleError);
+        }}
+        className={clsx({
+          "block rounded-sm bg-white/40 px-3 py-1.5 text-left": true,
+          "hover:bg-white/70": !disabled,
+          "cursor-not-allowed": disabled,
+        })}
+        onMouseEnter={() => {
+          if (!goalId) return;
+
+          if (disabled) return;
+
+          console.log("GOT FUCKED");
+          setNewSubgoal({
+            parentGoalId: goalId,
+            subgoalTitle: subgoal,
+          });
+        }}
+        onMouseLeave={() => {
+          setNewSubgoal(null);
+        }}
+      >
+        {isLoading && <Spinner />}
+        {subgoal}
+      </button>
     </div>
   );
 }
@@ -274,6 +305,7 @@ const DiffComponent: React.FC<DiffComponentProps> = ({ patchString }) => {
 function ChatBot() {
   const journeyId = useQueryParam("journeyId", "string");
   const [goal, setGoal] = useAtom(goalAtom);
+  const [newSubgoal, setNewSubgoal] = useAtom(newSubgoalAtom);
 
   const [query, setQuery] = useState<string>("");
 
@@ -332,17 +364,6 @@ function ChatBot() {
   }, [handleSubmit, setQuery]);
 
   const util = api.useContext();
-  const { mutateAsync: createPrereqs, isLoading } =
-    api.link.createChildren.useMutation({
-      onSuccess(data) {
-        // Invalidate links
-        util.link.getAllUnderGoal
-          .invalidate({
-            parentGoalId: goal?.id ?? "",
-          })
-          .catch(handleError);
-      },
-    });
 
   return (
     <div className="h-full w-full">
@@ -451,46 +472,8 @@ function ChatBot() {
               if (isPrereqBlock) {
                 // Strip out all instances of the string "҂"
                 const stripped = text.replace(/҂/g, "");
-                if (!goal) return null;
-                return (
-                  <NewSubgoalButton
-                    subgoal={stripped}
-                    onClick={() => {
-                      // window.dispatchEvent(
-                      //   new CustomEvent("explorerAdd", {
-                      //     detail: {
-                      //       parentGoalId: goal.id,
-                      //       subgoal: stripped,
-                      //     },
-                      //   })
-                      // );
-                      toast
-                        .promise(
-                          createPrereqs({
-                            parentGoalId: goal.id,
-                            goalTitles: [stripped],
-                          }).then(async (res) => {
-                            await util.link.getAllUnderGoal.invalidate({
-                              parentGoalId: goal.id,
-                            });
-                            if (res[0] && journeyId) {
-                              router
-                                .push(
-                                  `/journey/${journeyId}/goal/${res[0]?.goalId}`
-                                )
-                                .catch(handleError);
-                            }
-                          }),
-                          {
-                            loading: "Creating question...",
-                            success: "Question created!",
-                            error: "Error creating question",
-                          }
-                        )
-                        .catch(handleError);
-                    }}
-                  ></NewSubgoalButton>
-                );
+
+                return <NewSubgoalButton subgoal={stripped}></NewSubgoalButton>;
               }
               return (
                 <li {...props} className={className}>

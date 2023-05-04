@@ -34,7 +34,6 @@ export const useChatCompletion: UseChatCompletionHook = ({
 
   const prevPath = usePrevious(router.asPath);
   useEffect(() => {
-    console.log(router.asPath, prevPath);
     if (router.asPath !== prevPath) {
       cancel();
     }
