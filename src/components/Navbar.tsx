@@ -104,7 +104,7 @@ export function Navbar() {
                 </Dialog>
               </>
             )}
-            {onGoalPage && (
+            {/* {onGoalPage && (
               <div className="ml-4 flex items-center">
                 <Switch checked={turboMode} onCheckedChange={setTurboMode} />
                 <div className="ml-1.5 whitespace-nowrap text-sm">
@@ -121,7 +121,7 @@ export function Navbar() {
                   </TooltipContent>
                 </Tooltip>
               </div>
-            )}
+            )} */}
           </div>
         </div>
 

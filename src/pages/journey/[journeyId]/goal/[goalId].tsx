@@ -447,7 +447,9 @@ function ChatBot() {
                   .trim();
 
                 try {
-                  return <DiffComponent patchString={patchString} />;
+                  return (
+                    <DiffComponent key={props.key} patchString={patchString} />
+                  );
                 } catch {}
               }
               return (
@@ -473,7 +475,12 @@ function ChatBot() {
                 // Strip out all instances of the string "҂"
                 const stripped = text.replace(/҂/g, "");
 
-                return <NewSubgoalButton subgoal={stripped}></NewSubgoalButton>;
+                return (
+                  <NewSubgoalButton
+                    key={props.key}
+                    subgoal={stripped}
+                  ></NewSubgoalButton>
+                );
               }
               return (
                 <li {...props} className={className}>
