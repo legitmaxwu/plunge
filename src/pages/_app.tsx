@@ -15,6 +15,8 @@ import {
 import { useRouter } from "next/router";
 import { Toaster } from "react-hot-toast";
 import Head from "next/head";
+import { useMediaQuery } from "../hooks/useMediaQuery";
+import { TooltipProvider } from "../components/base/Tooltip";
 
 const RenderComponent: AppType = (props) => {
   const { Component, pageProps } = props;
@@ -33,6 +35,13 @@ const MyApp: AppType = (props) => {
   const { Component, pageProps } = props;
 
   const { pathname } = useRouter();
+
+  const show = useMediaQuery(
+    {
+      showIfBiggerThan: "md",
+    },
+    true
+  );
 
   // Check if the current route matches a public page
   const isPublicPage = publicPages.includes(pathname);
@@ -61,21 +70,39 @@ const MyApp: AppType = (props) => {
         />
         <link rel="manifest" href="/site.webmanifest" />
       </Head>
-      <ClerkProvider {...pageProps}>
-        {isPublicPage ? (
-          <RenderComponent {...props} />
-        ) : (
-          <>
-            <SignedIn>
-              <RenderComponent {...props} />
-            </SignedIn>
-            <SignedOut>
-              <RedirectToSignIn redirectUrl={"/"} />
-            </SignedOut>
-          </>
-        )}
-        <Toaster />
-      </ClerkProvider>
+      <TooltipProvider delayDuration={0}>
+        <ClerkProvider {...pageProps}>
+          {!show ? (
+            <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-gray-200 via-sky-300 to-blue-300 px-4">
+              <div className="text-center">
+                <h1 className="text-6xl font-bold text-blue-950">Plunge 🤿</h1>
+                <div className="text-2xl text-gray-600">
+                  dive into your curiosities {":)"}
+                </div>
+
+                <div className="h-8"></div>
+                <div className="max-w-sm">
+                  Welcome! Please use a device with a larger screen to access
+                  this site. Thanks!
+                </div>
+                <div className="h-16"></div>
+              </div>
+            </div>
+          ) : isPublicPage ? (
+            <RenderComponent {...props} />
+          ) : (
+            <>
+              <SignedIn>
+                <RenderComponent {...props} />
+              </SignedIn>
+              <SignedOut>
+                <RedirectToSignIn redirectUrl={"/"} />
+              </SignedOut>
+            </>
+          )}
+          <Toaster />
+        </ClerkProvider>
+      </TooltipProvider>
     </>
   );
 };

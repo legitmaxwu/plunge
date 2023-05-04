@@ -31,6 +31,7 @@
     "@radix-ui/react-portal": "^1.0.2",
     "@radix-ui/react-scroll-area": "^1.0.3",
     "@radix-ui/react-select": "^1.2.1",
+    "@radix-ui/react-switch": "^1.0.2",
     "@radix-ui/react-tooltip": "^1.0.5",
     "@trpc/client": "^10.18.0",
     "@trpc/next": "^10.21.2",

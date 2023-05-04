@@ -36,24 +36,22 @@ export function IconButton(props: IconButtonProps) {
 
   if (tooltipText) {
     return (
-      <TooltipProvider delayDuration={0}>
-        <Tooltip>
-          <TooltipTrigger>
-            <button {...rest} className={styles} onClick={onClick}>
-              <Icon className="h-full w-full" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p
-              className={clsx({
-                "text-gray-400": props.disabled,
-              })}
-            >
-              {tooltipText}
-            </p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger>
+          <button {...rest} className={styles} onClick={onClick}>
+            <Icon className="h-full w-full" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p
+            className={clsx({
+              "text-gray-500": props.disabled,
+            })}
+          >
+            {tooltipText}
+          </p>
+        </TooltipContent>
+      </Tooltip>
     );
   } else {
     return (

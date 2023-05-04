@@ -261,7 +261,9 @@ function RenderGoalItem(props: RenderGoalItemProps) {
     };
   }, [goalId, handleAddClick, setNewSubgoal]);
 
-  const highlightNewSubgoal = isViewingThisGoal && !!newSubgoal;
+  // const highlightNewSubgoal = isViewingThisGoal && !!newSubgoal;
+  const highlightNewSubgoal = false; // This is for the new subgoal textarea
+  const showNewSubgoal = isViewingThisGoal && !!newSubgoal;
 
   if (!goal) {
     return null;
@@ -394,7 +396,7 @@ function RenderGoalItem(props: RenderGoalItemProps) {
                   // "bg-blue-50": isViewingThisGoal && !!newSubgoal,
                 })}
                 placeholder="Name of subgoal"
-                value={highlightNewSubgoal ? newSubgoal : newGoal}
+                value={highlightNewSubgoal ? newSubgoal ?? "" : newGoal}
                 onChange={(e) => {
                   setNewGoal(e.target.value);
                 }}
@@ -436,6 +438,11 @@ function RenderGoalItem(props: RenderGoalItemProps) {
                   />
                 );
               })}
+              {showNewSubgoal && (
+                <Fade className="ml-2.5 mt-1 bg-white/30 px-1 text-sm">
+                  {newSubgoal}
+                </Fade>
+              )}
             </SortableContext>
           </DndContext>
         </Fade>

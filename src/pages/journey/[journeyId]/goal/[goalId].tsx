@@ -10,6 +10,8 @@ import {
   useRef,
   type HTMLProps,
   type ButtonHTMLAttributes,
+  Children,
+  type ReactNode,
 } from "react";
 
 import { useQueryParam } from "../../../../hooks/useQueryParam";
@@ -46,6 +48,7 @@ import {
   loadingAiAtom,
   newPrereqAtom,
   newSubgoalAtom,
+  turboModeAtom,
 } from "../../../../utils/jotai";
 import { parseDiff, Diff, Hunk } from "react-diff-view";
 import { applyPatch as diffApplyPatch } from "diff";
@@ -77,6 +80,15 @@ import { Fade } from "../../../../components/animate/Fade";
 import Head from "next/head";
 import { LocalStorageKey } from "../../../../utils/localstorage";
 import { LocalStorage } from "../../../../utils/localstorage";
+import { isValidElement } from "react";
+import { ReactElement } from "react";
+import { JSXElementConstructor } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../../../../components/base/Tooltip";
 
 interface HeadingDropdownProps {
   sectionName: string;
@@ -140,18 +152,27 @@ function NewSubgoalButton(props: NewSubgoalButtonProps) {
   const [newSubgoal, setNewSubgoal] = useAtom(newSubgoalAtom);
 
   return (
-    <button
-      {...rest}
-      className="mb-2 block rounded-sm bg-white/40 px-3 py-1.5 text-left hover:bg-white/70"
-      onMouseEnter={() => {
-        setNewSubgoal(subgoal);
-      }}
-      onMouseLeave={() => {
-        setNewSubgoal(null);
-      }}
-    >
-      {subgoal}
-    </button>
+    <div className="-ml-6 mb-2 ">
+      <Tooltip>
+        <TooltipTrigger>
+          <button
+            {...rest}
+            className="block rounded-sm bg-white/40 px-3 py-1.5 text-left hover:bg-white/70"
+            onMouseEnter={() => {
+              setNewSubgoal(subgoal);
+            }}
+            onMouseLeave={() => {
+              setNewSubgoal(null);
+            }}
+          >
+            {subgoal}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="left">
+          <div>Dive into this question</div>
+        </TooltipContent>
+      </Tooltip>
+    </div>
   );
 }
 
@@ -270,6 +291,7 @@ function ChatBot() {
     setQuery("");
   }, [goal?.id, setQuery]);
 
+  const [turboMode] = useAtom(turboModeAtom);
   const handleSubmit = useCallback(
     (q: string) => {
       setResponse("");
@@ -277,9 +299,10 @@ function ChatBot() {
         goal: goal?.title ?? "",
         article: goal?.guideMarkdown ?? "",
         query: q,
+        turboMode,
       });
     },
-    [goal?.guideMarkdown, goal?.title, initiateChatCompletion]
+    [goal?.guideMarkdown, goal?.title, initiateChatCompletion, turboMode]
   );
 
   const router = useRouter();
@@ -339,6 +362,21 @@ function ChatBot() {
           }}
         >
           {"I can't comprehend the article"}
+        </Button>
+        <Button
+          size="small"
+          onClick={() => {
+            window.dispatchEvent(
+              new CustomEvent("chatbotSubmit", {
+                detail: {
+                  query:
+                    "What are some interesting questions stemming from this article?",
+                },
+              })
+            );
+          }}
+        >
+          {"Inspire me"}
         </Button>
       </div>
       <div className="h-1"></div>
@@ -414,18 +452,38 @@ function ChatBot() {
                   <NewSubgoalButton
                     subgoal={stripped}
                     onClick={() => {
-                      window.dispatchEvent(
-                        new CustomEvent("explorerAdd", {
-                          detail: {
+                      // window.dispatchEvent(
+                      //   new CustomEvent("explorerAdd", {
+                      //     detail: {
+                      //       parentGoalId: goal.id,
+                      //       subgoal: stripped,
+                      //     },
+                      //   })
+                      // );
+                      toast
+                        .promise(
+                          createPrereqs({
                             parentGoalId: goal.id,
-                            subgoal: stripped,
-                          },
-                        })
-                      );
-                      // createPrereqs({
-                      //   parentGoalId: goal.id,
-                      //   goalTitles: [stripped],
-                      // }).catch(handleError);
+                            goalTitles: [stripped],
+                          }).then(async (res) => {
+                            await util.link.getAllUnderGoal.invalidate({
+                              parentGoalId: goal.id,
+                            });
+                            if (res[0] && journeyId) {
+                              router
+                                .push(
+                                  `/journey/${journeyId}/goal/${res[0]?.goalId}`
+                                )
+                                .catch(handleError);
+                            }
+                          }),
+                          {
+                            loading: "Creating question...",
+                            success: "Question created!",
+                            error: "Error creating question",
+                          }
+                        )
+                        .catch(handleError);
                     }}
                   ></NewSubgoalButton>
                 );
@@ -436,6 +494,32 @@ function ChatBot() {
                 </li>
               );
             },
+            // ul({ className, children, ...props }) {
+            //   const hasPrereqBlock = Children.toArray(children).some(
+            //     (child: ReactNode) => {
+            //       if (!isValidElement(child)) {
+            //         return false;
+            //       }
+            //       if (child.type !== "li") {
+            //         return false;
+            //       }
+
+            //       const text = child.props.children?.join("") ?? "";
+
+            //       return text.startsWith("҂");
+            //     }
+            //   );
+            //   return (
+            //     <ul
+            //       {...props}
+            //       className={clsx(className, {
+            //         "pl-0": hasPrereqBlock,
+            //       })}
+            //     >
+            //       {children}
+            //     </ul>
+            //   );
+            // },
           }}
         >
           {response || "Response will appear here…"}
@@ -491,6 +575,8 @@ function ManageGuide() {
     markdown: websiteMarkdown,
   } = useWebsiteInfo(urlToLoad);
 
+  const [turboMode] = useAtom(turboModeAtom);
+
   if (!goal) return null;
 
   const generateButtonDisabled = !!goal.guideMarkdown || loadingAi || !goal;
@@ -507,6 +593,7 @@ function ManageGuide() {
               onClick={() => {
                 initiateChatCompletion({
                   goal: goal.title,
+                  turboMode: turboMode,
                 });
               }}
               tooltipText={
@@ -692,22 +779,58 @@ function ManageGuide() {
                 a({ href, children, className, node, ...props }) {
                   // make target="_blank" for external links
                   const isExternal = href?.startsWith("http");
+                  const isWikipediaLink = href?.includes("wikipedia.org");
+
                   return (
-                    <a
-                      {...props}
-                      href={href}
-                      target={isExternal ? "_blank" : undefined}
-                      rel={isExternal ? "noopener noreferrer" : undefined}
-                      className={clsx(className, "hover:text-gray-500")}
-                    >
-                      {children}
-                      {
-                        // add external link icon
-                        isExternal && (
-                          <ArrowTopRightOnSquareIcon className="mb-1 ml-1 inline h-4 w-4" />
-                        )
-                      }
-                    </a>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <div
+                          // {...props}
+                          // href={href}
+                          // target={isExternal ? "_blank" : undefined}
+                          // rel={isExternal ? "noopener noreferrer" : undefined}
+                          className={clsx(
+                            className,
+                            "inline cursor-pointer text-cyan-600 underline hover:text-cyan-500"
+                          )}
+                        >
+                          {children}
+                        </div>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-40" align="start">
+                        <DropdownMenuItem
+                          onClick={() => {
+                            window.dispatchEvent(
+                              new CustomEvent("chatbotSubmit", {
+                                detail: {
+                                  query: `Tell me more about "${
+                                    children?.join("") ?? ""
+                                  }"`,
+                                },
+                              })
+                            );
+                          }}
+                        >
+                          What is this?
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <a
+                            href={href}
+                            target={isExternal ? "_blank" : undefined}
+                            rel={isExternal ? "noopener noreferrer" : undefined}
+                            className={clsx(className, "cursor-pointer")}
+                          >
+                            {isWikipediaLink ? "Wikipedia" : "Open Link"}
+                            {
+                              // add external link icon
+                              isExternal && (
+                                <ArrowTopRightOnSquareIcon className="mb-1 ml-1 inline h-4 w-4" />
+                              )
+                            }
+                          </a>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   );
                 },
               }}

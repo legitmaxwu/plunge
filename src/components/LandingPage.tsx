@@ -12,9 +12,9 @@ const LandingPage = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-gray-200 via-sky-300 to-blue-300">
       <div className="text-center">
-        <h1 className="text-6xl font-bold">Plunge 🤿</h1>
-        <p className="mt-4 text-2xl">
-          rabbit holes, but without getting lost {":)"}
+        <h1 className="text-6xl font-bold text-blue-950">Plunge 🤿</h1>
+        <p className="text-2xl text-gray-600">
+          dive into your curiosities {":)"}
         </p>
         <div className="h-16"></div>
 

@@ -30,6 +30,8 @@ As a chatbot, respond to messages based on a question and article.
 2. Then, only if appropriate, suggest 2-3 follow-up questions for the user to wonder about. 
 3. If the users asks to modify the article, create a patchfile.
 
+Write in a fun, approachable style, while remaining informative and concise. Use emojis to help make your writing more engaging.
+
 ## Follow-up questions
 
 The questions should be under 15 words and end with a question mark. They should be specific, interesting, and non-trivial. The questions should be from the perspective of the user, not the chatbot.
@@ -62,14 +64,20 @@ The article is provided in the second User message. Each line is formatted as {l
 const handler = async (req: NextRequest): Promise<Response> => {
   const auth = getAuth(req);
   if (!auth.userId) throw new Error("Not logged in");
-  const user = await clerkClient.users.getUser(auth.userId);
-  const aiStyle = (user?.unsafeMetadata.aiStyle as string) ?? null;
+  // const user = await clerkClient.users.getUser(auth.userId);
+  // const aiStyle = (user?.unsafeMetadata.aiStyle as string) ?? null;
 
-  const { goal, article, query } = z
+  const {
+    goal,
+    article,
+    query,
+    turboMode = false,
+  } = z
     .object({
       goal: z.string(),
       article: z.string(),
       query: z.string(),
+      turboMode: z.boolean().optional(),
     })
     .parse(await req.json());
 
@@ -89,12 +97,12 @@ const handler = async (req: NextRequest): Promise<Response> => {
       .map((line, idx) => `${idx + 1}҂${line}`)
       .join("\n")}`,
   });
-  if (aiStyle) {
-    finalMessages.push({
-      role: "user",
-      content: `Write in the following style:\n\n${aiStyle}`,
-    });
-  }
+  // if (aiStyle) {
+  //   finalMessages.push({
+  //     role: "user",
+  //     content: `Write in the following style:\n\n${aiStyle}`,
+  //   });
+  // }
 
   finalMessages.push({
     role: "user",
@@ -102,7 +110,7 @@ const handler = async (req: NextRequest): Promise<Response> => {
   });
 
   const stream = await streamChatCompletion(finalMessages, {
-    model: "gpt-4",
+    model: turboMode ? "gpt-3.5-turbo" : "gpt-4",
     temperature: 0,
     max_tokens: 2048,
   });
