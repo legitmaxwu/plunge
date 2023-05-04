@@ -48,7 +48,7 @@ const handler = async (req: NextRequest): Promise<Response> => {
 
   const stream = await streamChatCompletion(finalMessages, {
     model: turboMode ? "gpt-3.5-turbo" : "gpt-4",
-    temperature: 1,
+    temperature: 0,
     max_tokens: 2048,
   });
   return new Response(stream);
