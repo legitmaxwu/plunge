@@ -18,12 +18,10 @@ const LandingPage = () => {
     <div className="flex h-screen flex-col items-center bg-gradient-to-r from-gray-200 via-sky-300 to-blue-300">
       <div className="flex h-full flex-col items-center justify-center text-center">
         <h1 className="text-6xl font-bold text-blue-950">Plunge 🤿</h1>
-        <p className="text-2xl text-gray-600">
-          dive into your curiosities {":)"}
-        </p>
-        <div className="h-8"></div>
+        <p className="text-2xl text-gray-600">explore your curiosity {":)"}</p>
+        <div className="h-12"></div>
         <button
-          className="flex items-center gap-2 rounded-md bg-white/20 px-3 py-1 transition hover:bg-white/40"
+          className="flex items-center gap-2 rounded-md bg-white/20 px-6 py-2 transition hover:bg-white/40"
           onClick={() => {
             signIn
               ?.authenticateWithRedirect({
@@ -38,7 +36,7 @@ const LandingPage = () => {
           Sign in with Google
         </button>
         <div className="h-16"></div>
-        <div className="relative aspect-video h-96">
+        <div className="relative aspect-video h-96 xl:h-120 2xl:h-160">
           <div className="h-full w-full animate-pulse rounded-sm bg-black/10"></div>
           <ReactPlayer
             style={{

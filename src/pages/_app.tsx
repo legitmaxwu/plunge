@@ -78,7 +78,7 @@ const MyApp: AppType = (props) => {
               <div className="text-center">
                 <h1 className="text-6xl font-bold text-blue-950">Plunge 🤿</h1>
                 <div className="text-2xl text-gray-600">
-                  dive into your curiosities {":)"}
+                  explore your curiosity {":)"}
                 </div>
 
                 <div className="h-8"></div>

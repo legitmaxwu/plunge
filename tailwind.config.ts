@@ -31,6 +31,7 @@ export default {
       spacing: {
         120: "30rem",
         128: "32rem",
+        160: "40rem",
       },
       keyframes: {
         "accordion-down": {
