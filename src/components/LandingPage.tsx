@@ -38,12 +38,18 @@ const LandingPage = () => {
           Sign in with Google
         </button>
         <div className="h-16"></div>
-        <div className="aspect-video h-96">
+        <div className="relative aspect-video h-96">
+          <div className="h-full w-full animate-pulse rounded-sm bg-black/10"></div>
           <ReactPlayer
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+            }}
+            controls={true}
             width="100%"
             height="100%"
-            muted={true}
-            url="https://www.youtube.com/watch?v=JX49bTgRy1w"
+            url="https://www.youtube.com/watch?v=UWUu5KI7_U4"
           />
         </div>
       </div>

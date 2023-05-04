@@ -82,11 +82,18 @@ const MyApp: AppType = (props) => {
                 </div>
 
                 <div className="h-8"></div>
-                <div className="aspect-video">
+                <div className="relative aspect-video">
+                  <div className="h-full w-full animate-pulse rounded-sm bg-black/10"></div>
                   <ReactPlayer
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                    }}
+                    controls={true}
                     width="100%"
                     height="100%"
-                    url="https://www.youtube.com/watch?v=JX49bTgRy1w"
+                    url="https://www.youtube.com/watch?v=UWUu5KI7_U4"
                   />
                 </div>
                 <div className="h-8"></div>
