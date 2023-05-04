@@ -1,8 +1,9 @@
-import { type FC, useState } from "react";
+import { type FC, useState, useEffect } from "react";
 import { type ReactNode, type CSSProperties } from "react";
 import { useRandomInterval } from "../hooks/useRandomInterval";
 import { motion, type MotionStyle } from "framer-motion";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
+import { Fade } from "./animate/Fade";
 
 const DEFAULT_COLOR = "#ffef93";
 
@@ -51,22 +52,24 @@ export const Sparkles: FC<SparklesProps> = ({
 }) => {
   const [sparkles, setSparkles] = useState<SparkleItem[]>([]);
   const prefersReducedMotion = usePrefersReducedMotion();
+
   useRandomInterval(
     () => {
       const now = Date.now();
-      const nextSparkles = sparkles.filter((sp) => {
-        const delta = now - sp.createdAt;
-        return delta < 750;
-      });
 
-      if (enabled) {
-        for (let i = 0; i < starsPerCycle; i++) {
-          const sparkle = generateSparkle(color);
-          nextSparkles.push(sparkle);
+      setSparkles((prev) => {
+        const next = prev.filter((sp) => {
+          const delta = now - sp.createdAt;
+          return delta < 1250;
+        });
+        if (enabled) {
+          for (let i = 0; i < starsPerCycle; i++) {
+            const sparkle = generateSparkle(color);
+            next.push(sparkle);
+          }
         }
-      }
-
-      setSparkles(nextSparkles);
+        return next;
+      });
     },
     prefersReducedMotion ? null : 500 / frequency,
     prefersReducedMotion ? null : 750 / frequency
@@ -134,7 +137,7 @@ const Sparkle: FC<SparkleProps> = ({ color, size, style }) => {
         viewBox="0 0 68 68"
         fill="none"
         animate={sparkleRotate}
-        transition={{ rotate: { duration: 1, ease: "linear", loop: Infinity } }}
+        transition={{ rotate: { duration: 2, ease: "linear", loop: Infinity } }}
       >
         <path
           d="M26.5 25.5C19.0043 33.3697 0 34 0 34C0 34 19.1013 35.3684 26.5 43.5C33.234 50.901 34 68 34 68C34 68 36.9884 50.7065 44.5 43.5C51.6431 36.647 68 34 68 34C68 34 51.6947 32.0939 44.5 25.5C36.5605 18.2235 34 0 34 0C34 0 33.6591 17.9837 26.5 25.5Z"

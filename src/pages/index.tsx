@@ -25,10 +25,10 @@ function HomePage() {
   return (
     <div className="flex h-screen flex-col items-center bg-gradient-to-r from-sky-200 to-blue-200">
       <Navbar />
-      <SidePadding className="justify-between overflow-y-scroll p-8">
-        <div className="h-8"></div>
-        <div className="p-8">
-          <div className="text-xl font-bold">{"Things I'm learning"}</div>
+      <SidePadding className="justify-between">
+        <div className="h-16"></div>
+        <div className="">
+          <div className="text-2xl font-bold">{"Journeys"}</div>
           <div className="h-8"></div>
           <div className="flex flex-wrap items-center gap-2">
             {isLoading && (
@@ -54,19 +54,19 @@ function HomePage() {
             ))}
             {journeys?.length === 0 && (
               <div className="text-gray-500">
-                You haven&apos;t started learning anything yet.
+                You haven&apos;t embarked on any journeys yet.
               </div>
             )}
           </div>
           <div className="h-8"></div>
-          <Sparkles enabled={nothingCreated} frequency={2} starsPerCycle={3}>
+          <Sparkles enabled={nothingCreated} frequency={6}>
             <Button
               onClick={() => {
                 router.push("/create/custom").catch(handleError);
               }}
               className="shadow-md"
             >
-              Learn something new
+              Start a new journey
             </Button>
           </Sparkles>
         </div>

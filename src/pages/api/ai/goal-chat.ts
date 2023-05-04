@@ -1,4 +1,4 @@
-import { getAuth } from "@clerk/nextjs/server";
+import { clerkClient, getAuth } from "@clerk/nextjs/server";
 import { type NextRequest } from "next/server";
 import { z } from "zod";
 import { type Message, streamChatCompletion } from "../../../server/openai";
@@ -24,21 +24,26 @@ export const config = {
 // `.trim();
 
 const SYSTEM_PROMPT = `
-As a chatbot, answer questions and provide guidance based on a written guide. Address concerns or questions briefly (<50 words), and suggest 2-5 learning goals if needed. Use separate Markdown paragraphs for goals, formatted as "@@@@{title_of_goal, in plain text, under 20 words}@@@@". Goals should be standalone sentences, context-free, specific, measurable, and clear. They should help the user gather knowledge or experience to better prepare them for tackling their learning goal. Use basic Markdown formatting. If helpful, create patchfiles for modifying guide sections.
+As a chatbot, respond to messages based on a question and article.
 
-Example:
+1. First, address the message briefly (<50 words). 
+2. Then, only if appropriate, suggest 2-3 follow-up questions for the user to wonder about. 
+3. If the users asks to modify the article, create a patchfile.
 
-This is a paragraph.
+## Follow-up questions
 
-@@@@Goal example (must be in plain text)@@@@
+The questions should be under 15 words and end with a question mark. They should be specific, interesting, and non-trivial. The questions should be from the perspective of the user, not the chatbot.
 
-@@@@Another goal example@@@@
+Each follow-up question is in its own Markdown list element, beginning and ending with "҂". 
 
-This is another paragraph.
+Formatting Example (Do not pay attention to the content of the questions):
 
-Separate each goal with TWO newlines!!! Ensure proper formatting.
+- ҂How does ... work?҂
+- ҂What are the different types of ...?҂
 
-For patchfile creation, first state the contents of the exact line you are trying to modify. Then, output the patchfile in Unified Diff Format:
+## Patchfiles
+
+For patchfiles, first state the contents of the exact line you are trying to modify. Then, output the patchfile in Unified Diff Format:
 
 \`\`\`patchfile
 --- original.txt
@@ -51,12 +56,14 @@ For patchfile creation, first state the contents of the exact line you are tryin
 +Added a fourth line
 \`\`\`
 
-The guide article is provided in the second User message, formatted as {line_number}҂{content}. Only {content} should be considered part of the original string. Begin your patchfile at the nearest heading. Double-check the patchfile for errors before submitting. MAINTAIN THE ORIGINAL FORMATTING of the guide article in your patchfile!!!
+The article is provided in the second User message. Each line is formatted as {line_number}҂{content}. Only {content} should be considered part of the original string. Begin your patchfile at the nearest heading. Double-check the patchfile for errors before submitting. MAINTAIN THE ORIGINAL FORMATTING of the article in your patchfile!!!
 `.trim();
 
 const handler = async (req: NextRequest): Promise<Response> => {
   const auth = getAuth(req);
   if (!auth.userId) throw new Error("Not logged in");
+  const user = await clerkClient.users.getUser(auth.userId);
+  const aiStyle = (user?.unsafeMetadata.aiStyle as string) ?? null;
 
   const { goal, article, query } = z
     .object({
@@ -66,34 +73,39 @@ const handler = async (req: NextRequest): Promise<Response> => {
     })
     .parse(await req.json());
 
-  const stream = await streamChatCompletion(
-    [
-      {
-        role: "system",
-        content: SYSTEM_PROMPT,
-      },
-      {
-        role: "user",
-        content: `Goal:\n\n${goal}`,
-      },
-      {
-        role: "user",
-        content: `Guide article:\n\n${article
-          .split("\n")
-          .map((line, idx) => `${idx + 1}҂${line}`)
-          .join("\n")}`,
-      },
-      {
-        role: "user",
-        content: query,
-      },
-    ],
-    {
-      model: "gpt-4",
-      temperature: 0,
-      max_tokens: 2048,
-    }
-  );
+  const finalMessages: Message[] = [];
+  finalMessages.push({
+    role: "system",
+    content: SYSTEM_PROMPT,
+  });
+  finalMessages.push({
+    role: "user",
+    content: `Question:\n\n${goal}`,
+  });
+  finalMessages.push({
+    role: "user",
+    content: `Article:\n\n${article
+      .split("\n")
+      .map((line, idx) => `${idx + 1}҂${line}`)
+      .join("\n")}`,
+  });
+  if (aiStyle) {
+    finalMessages.push({
+      role: "user",
+      content: `Write in the following style:\n\n${aiStyle}`,
+    });
+  }
+
+  finalMessages.push({
+    role: "user",
+    content: `Message:\n\n${query}`,
+  });
+
+  const stream = await streamChatCompletion(finalMessages, {
+    model: "gpt-4",
+    temperature: 0,
+    max_tokens: 2048,
+  });
   return new Response(stream);
 };
 

@@ -5,6 +5,7 @@ import {
   HomeIcon,
   InformationCircleIcon,
   QuestionMarkCircleIcon,
+  UserIcon,
 } from "@heroicons/react/24/outline";
 import { handleError } from "../utils/handleError";
 import { Avatar, AvatarFallback, AvatarImage } from "./base/Avatar";
@@ -31,54 +32,71 @@ export function Navbar() {
 
   const showHelp = router.pathname.includes("/goal");
 
-  const [open, setOpen] = useState(false);
   return (
     <div className="w-full">
       <div className="flex justify-between px-4 py-2 md:px-8">
-        <div className="flex items-center gap-2 md:gap-6">
-          <button
-            className="mr-2 flex items-center gap-1.5 font-semibold hover:text-gray-600"
-            onClick={() => {
-              router.push("/").catch(handleError);
-            }}
-          >
-            <HomeIcon strokeWidth={2} className="s-5 w-5" />
-            Home
-          </button>
-          {showHelp && (
-            <Dialog>
-              <DialogTrigger>
-                <button className="mr-2 flex items-center gap-1.5 font-semibold hover:text-gray-600">
-                  <InformationCircleIcon strokeWidth={2} className="s-5 w-5" />
-                  Help
-                </button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>How to use Plunge</DialogTitle>
-                  <DialogDescription>
-                    <div className="h-6"></div>
-                    <h2 className="mb-1 font-medium underline">Explorer</h2>
-                    <div className="text-gray-800">
-                      Hover over a goal to add subgoals.
-                    </div>
-                    <div className="h-4"></div>
-                    <h2 className="mb-1 font-medium underline">Guide</h2>
-                    <div className="text-gray-800">
-                      Try clicking the{" "}
-                      <QuestionMarkCircleIcon className="inline h-4 w-4" /> next
-                      to any heading or selecting any text!
-                    </div>
-                    <div className="h-4"></div>
-                    <h2 className="mb-1 font-medium underline">Ask for help</h2>
-                    <div className="text-gray-800">
-                      Ask any questions related to the provided guide.
-                    </div>
-                  </DialogDescription>
-                </DialogHeader>
-              </DialogContent>
-            </Dialog>
-          )}
+        <div className="flex items-center gap-2 md:gap-8">
+          <div className="flex select-none items-center gap-1.5">
+            <div className="text-2xl">🤿</div>
+            <div className="mb-0.5 text-lg font-bold text-blue-950">Plunge</div>
+          </div>
+          <div className="flex select-none items-center gap-2 md:gap-6">
+            <button
+              className="flex items-center gap-1 hover:text-gray-600"
+              onClick={() => {
+                router.push("/").catch(handleError);
+              }}
+            >
+              <HomeIcon strokeWidth={2} className="h-5 w-5" />
+              Home
+            </button>
+            <button
+              className="flex items-center gap-1 hover:text-gray-600"
+              onClick={() => {
+                router.push("/personalize").catch(handleError);
+              }}
+            >
+              <UserIcon strokeWidth={2} className="h-5 w-5" />
+              Personalize
+            </button>
+            {showHelp && (
+              <Dialog>
+                <DialogTrigger>
+                  <button className="flex items-center gap-1 font-semibold text-cyan-600 hover:text-cyan-500">
+                    <InformationCircleIcon
+                      strokeWidth={2}
+                      className="s-5 w-5"
+                    />
+                    Help
+                  </button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>How to use Plunge</DialogTitle>
+                    <DialogDescription>
+                      <div className="h-6"></div>
+                      <h2 className="mb-1 font-medium underline">Explore</h2>
+                      <div className="text-gray-800">
+                        Hover over a question to add sub-questions.
+                      </div>
+                      <div className="h-4"></div>
+                      <h2 className="mb-1 font-medium underline">Learn</h2>
+                      <div className="text-gray-800">
+                        After generating an article, try clicking the{" "}
+                        <QuestionMarkCircleIcon className="inline h-4 w-4" />{" "}
+                        next to any heading or selecting any text!
+                      </div>
+                      <div className="h-4"></div>
+                      <h2 className="mb-1 font-medium underline">Inquire</h2>
+                      <div className="text-gray-800">
+                        Ask any questions related to the provided article.
+                      </div>
+                    </DialogDescription>
+                  </DialogHeader>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center">

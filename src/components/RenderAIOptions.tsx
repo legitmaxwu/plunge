@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "./base/Button";
 import { Textarea } from "./base/Textarea";
+import { Fade } from "./animate/Fade";
 
 interface RenderAIOptionsProps {
   options: string[];
@@ -22,7 +23,7 @@ export function RenderAIOptions(props: RenderAIOptionsProps) {
   return (
     <div className="flex w-full flex-col gap-2">
       {optionsText.map((option, index) => (
-        <div className="flex flex-row items-center" key={index}>
+        <Fade className="flex flex-row items-center" key={index}>
           <Textarea
             minRows={1}
             className="w-full"
@@ -42,7 +43,7 @@ export function RenderAIOptions(props: RenderAIOptionsProps) {
           >
             →
           </Button>
-        </div>
+        </Fade>
       ))}
     </div>
   );

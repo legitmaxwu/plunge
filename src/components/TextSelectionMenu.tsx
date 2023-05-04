@@ -57,7 +57,7 @@ export function TextSelectionMenu(props: TextSelectionMenuProps) {
                 window.dispatchEvent(
                   new CustomEvent("chatbotSubmit", {
                     detail: {
-                      query: `I don't understand this:\n\n${selectedText}`,
+                      query: `> ${selectedText}\n\nI don't understand this.`,
                     },
                   })
                 );
@@ -95,7 +95,7 @@ export function TextSelectionMenu(props: TextSelectionMenuProps) {
                 setIsOpen(false);
               }}
             >
-              Quote
+              Quote (custom inquiry)
             </button>
           </PopoverContent>
         )}

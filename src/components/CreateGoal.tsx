@@ -1,7 +1,7 @@
 import { useMachine } from "@xstate/react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/router";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { assign, createMachine } from "xstate";
 import { Button } from "./base/Button";
 import { Textarea } from "./base/Textarea";
@@ -69,7 +69,7 @@ function StepCard(props: StepCardProps) {
         <ArrowLeftIcon className="h-3 w-3 cursor-pointer " />
         Home
       </button>
-      <div className="flex h-full w-full flex-col items-center rounded-md border border-gray-400 bg-white/20 p-12 shadow-md">
+      <div className="flex h-full w-full flex-col items-center rounded-md border border-gray-400 bg-white/20 p-12 pb-4 shadow-md">
         {children}
       </div>
     </motion.div>
@@ -151,7 +151,7 @@ function InitGoal(props: InitGoalProps) {
   );
   return (
     <StepCard>
-      <div className="text-xl">What would you like to learn?</div>
+      <div className="text-xl">Every journey starts with a question.</div>
       {parentGoalId && (
         <>
           <div className="h-4"></div>
@@ -165,7 +165,7 @@ function InitGoal(props: InitGoalProps) {
       <Textarea
         minRows={1}
         className="w-full"
-        placeholder="perpetual futures, chinese remainder theorem, etc."
+        placeholder="how do fish breathe underwater?"
         value={goal}
         onValueChange={setGoal}
       />
@@ -220,35 +220,28 @@ function RefineGoal(props: RefineGoalProps) {
     });
   }, []);
 
-  const { initiateChatCompletion } = useChatCompletion(
-    "/api/ai/refine-goal",
-    handleNewToken
-  );
+  const { initiateChatCompletion, cancel } = useChatCompletion({
+    apiEndpoint: "/api/ai/refine-goal",
+    handleNewToken,
+  });
 
   const getSuggestions = useCallback(
     (goal: string, comments?: string, currentOptions?: string[]) => {
-      const abortController = new AbortController();
-
       setRefineOptions([]);
       setDisliked(false);
       setComment("");
 
-      initiateChatCompletion(
-        {
-          goal,
-          comments,
-          currentOptions,
-        },
-        {
-          abortController,
-        }
-      );
+      initiateChatCompletion({
+        goal,
+        comments,
+        currentOptions,
+      });
 
       return () => {
-        abortController.abort();
+        cancel();
       };
     },
-    [initiateChatCompletion]
+    [cancel, initiateChatCompletion]
   );
   useEffect(() => {
     const cancel = getSuggestions(currentGoal);
@@ -259,7 +252,7 @@ function RefineGoal(props: RefineGoalProps) {
 
   return (
     <StepCard>
-      <div className="text-xl">Refine your learning goal.</div>
+      <div className="text-xl">Refine your question.</div>
       <div className="h-8"></div>
       <RenderAIOptions
         options={[currentGoal, ...refineOptions]}
@@ -321,7 +314,7 @@ function FinalizeGoal(props: FinalizeGoalProps) {
         <Button variant="ghost" onClick={onRefineMore}>
           Refine More
         </Button>
-        <Button onClick={onComplete}>Continue</Button>
+        <Button onClick={onComplete}>{"Let's Begin!"}</Button>
       </div>
     </StepCard>
   );

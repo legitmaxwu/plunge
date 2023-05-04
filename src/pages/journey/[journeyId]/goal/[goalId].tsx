@@ -117,7 +117,7 @@ function HeadingDropdown(props: HeadingDropdownProps) {
             window.dispatchEvent(
               new CustomEvent("chatbotSubmit", {
                 detail: {
-                  query: `Can you modify the guide to expand on the "${sectionName}" section?`,
+                  query: `Can you modify the article to expand on the "${sectionName}" section?`,
                 },
               })
             );
@@ -259,10 +259,10 @@ function ChatBot() {
   }, []);
 
   const [loadingAi] = useAtom(loadingAiAtom);
-  const { initiateChatCompletion } = useChatCompletion(
-    "/api/ai/goal-chat",
-    handleNewToken
-  );
+  const { initiateChatCompletion } = useChatCompletion({
+    apiEndpoint: "/api/ai/goal-chat",
+    handleNewToken,
+  });
 
   useEffect(() => {
     // If the goal changes, reset the chatbot
@@ -320,48 +320,28 @@ function ChatBot() {
   return (
     <div className="h-full w-full">
       <div className="border border-transparent text-2xl font-bold text-black">
-        Ask for help
+        Inquire
       </div>
-      <div className="h-2"></div>
+      <div className="h-4"></div>
+
       <div className="flex flex-wrap items-center gap-2">
-        {/* <Button
-          size="small"
-          onClick={() => {
-            setQuery(
-              "I don't know where to start. Please help me pick a first step!"
-            );
-            window.dispatchEvent(
-              new CustomEvent("chatbotSubmit", {
-                detail: {
-                  query:
-                    "I don't know where to start. Please help me pick a first step!",
-                },
-              })
-            );
-          }}
-        >
-          {"Don't know where to start"}
-        </Button> */}
         <Button
           size="small"
           onClick={() => {
-            setQuery(
-              "I cannot comprehend the guide. What can I do to obtain the necessary context or knowledge?"
-            );
             window.dispatchEvent(
               new CustomEvent("chatbotSubmit", {
                 detail: {
                   query:
-                    "I cannot comprehend the guide. What can I do to obtain the necessary context or knowledge?",
+                    "I cannot comprehend the article. What are some questions I can ask to obtain the necessary context or knowledge?",
                 },
               })
             );
           }}
         >
-          {"I don't understand what the guide is saying"}
+          {"I can't comprehend the article"}
         </Button>
       </div>
-      <div className="h-2"></div>
+      <div className="h-1"></div>
       <Textarea
         ref={ref}
         className="w-full text-sm"
@@ -370,10 +350,11 @@ function ChatBot() {
         onValueChange={setQuery}
         minRows={3}
       />
-      <div className="h-1"></div>
+
+      <div className="h-2"></div>
       <Button
         className="w-full"
-        disabled={loadingAi}
+        loading={loadingAi}
         onClick={() => {
           handleSubmit(query);
         }}
@@ -381,7 +362,7 @@ function ChatBot() {
         Submit
       </Button>
 
-      <div className="h-4"></div>
+      <div className="h-8"></div>
 
       <div className="rounded-sm bg-white/30 px-3 py-2">
         <ReactMarkdown
@@ -420,14 +401,14 @@ function ChatBot() {
               );
             },
 
-            p({ className, children, ...props }) {
+            li({ className, children, ...props }) {
               // Get text from props.children
-              const text = children.join("");
-              const isPrereqBlock = text.startsWith("@@@@");
+              const text = children?.join("") ?? "";
+              const isPrereqBlock = text.startsWith("҂");
 
               if (isPrereqBlock) {
-                // Strip out all instances of the string "@@@@"
-                const stripped = text.replace(/@@@@/g, "");
+                // Strip out all instances of the string "҂"
+                const stripped = text.replace(/҂/g, "");
                 if (!goal) return null;
                 return (
                   <NewSubgoalButton
@@ -450,15 +431,9 @@ function ChatBot() {
                 );
               }
               return (
-                <p
-                  {...props}
-                  className={clsx({
-                    "text-gray-500": isPrereqBlock,
-                    [className as string]: className,
-                  })}
-                >
+                <li {...props} className={className}>
                   {children}
-                </p>
+                </li>
               );
             },
           }}
@@ -486,10 +461,10 @@ function ManageGuide() {
     [setGoal]
   );
   const [loadingAi, setLoadingAi] = useAtom(loadingAiAtom);
-  const { initiateChatCompletion } = useChatCompletion(
-    "/api/ai/get-goal-guide",
-    handleNewToken
-  );
+  const { initiateChatCompletion } = useChatCompletion({
+    apiEndpoint: "/api/ai/get-goal-guide",
+    handleNewToken,
+  });
 
   // useEffect(() => {
   //   if (goal && goal.guideMarkdown === null && !loadingAi) {
@@ -523,7 +498,7 @@ function ManageGuide() {
   return (
     <div className="">
       <div className="flex items-center">
-        <div className="text-xl font-bold">Guide</div>
+        <div className="text-xl font-bold">Learn</div>
         <div className="ml-2">
           <Sparkles enabled={!generateButtonDisabled}>
             <IconButton
@@ -536,8 +511,8 @@ function ManageGuide() {
               }}
               tooltipText={
                 generateButtonDisabled
-                  ? "Guide already exists"
-                  : "Generate Guide"
+                  ? "Article already exists"
+                  : "Generate Article"
               }
             />
           </Sparkles>
@@ -626,7 +601,7 @@ function ManageGuide() {
             "ml-1": true,
             "text-gray-500": !isEditing,
           })}
-          tooltipText={isEditing ? "Done Editing" : "Edit"}
+          tooltipText={isEditing ? "Done Editing" : "Edit Article"}
           onClick={() => {
             setIsEditing((prev) => !prev);
           }}
@@ -649,7 +624,8 @@ function ManageGuide() {
       >
         {isEditing ? (
           <ReactTextareaAutosize
-            className="w-full rounded-sm border border-transparent bg-transparent p-4 font-mono text-sm transition focus:border-gray-700 focus:outline-none"
+            placeholder="Type here..."
+            className="w-full resize-none rounded-sm border border-transparent bg-transparent p-4 font-mono text-sm transition focus:border-gray-700 focus:outline-none"
             value={goal.guideMarkdown ?? ""}
             onChange={(e) => {
               setGoal((goal) => {
@@ -666,7 +642,7 @@ function ManageGuide() {
             <ReactMarkdown
               className={clsx({
                 prose: true,
-                "text-gray-400": !goal.guideMarkdown,
+                "select-none text-gray-400": !goal.guideMarkdown,
               })}
               remarkPlugins={[remarkGfm]}
               components={{
@@ -736,7 +712,9 @@ function ManageGuide() {
                 },
               }}
             >
-              {newGuide ?? (goal.guideMarkdown || "Guide will appear here…")}
+              {newGuide ??
+                (goal.guideMarkdown ||
+                  "Click the sparkle icon to generate an article!")}
             </ReactMarkdown>
           </div>
         )}
@@ -803,7 +781,7 @@ const GoalPage: NextPage = () => {
               <div className="h-8"></div>
               <div className="flex items-center">
                 <div className="border border-transparent text-2xl font-bold text-black">
-                  Explorer
+                  Explore
                 </div>
               </div>
               <div className="h-4"></div>
@@ -822,7 +800,7 @@ const GoalPage: NextPage = () => {
                     <ReactTextareaAutosize
                       value={goal.title}
                       className={clsx({
-                        "mr-2 w-full resize-none rounded-sm border border-transparent bg-gradient-to-r from-cyan-600 via-sky-700 to-blue-700 bg-clip-text text-transparent caret-black outline-none transition hover:border-gray-400":
+                        "mr-2 w-full resize-none rounded-sm border border-transparent bg-gradient-to-r from-cyan-600 via-sky-600 to-blue-700 bg-clip-text text-transparent caret-black outline-none transition hover:border-gray-400":
                           true,
                         "focus:border-black": true,
                       })}
@@ -840,8 +818,10 @@ const GoalPage: NextPage = () => {
 
                   <div className="h-8"></div>
                   <ManageGuide />
-
                   <div className="h-8"></div>
+                  {/* <div className="text-xl font-bold">Writing style</div>
+
+                  <div className="h-8"></div> */}
                 </ScrollArea>
               </Fade>
             ) : (

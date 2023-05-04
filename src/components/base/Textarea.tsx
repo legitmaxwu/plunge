@@ -25,7 +25,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
 
     const styles = clsx(
       {
-        "border border-black/10 bg-white/30 rounded-md px-3 py-2 resize-none":
+        "border border-black/10 bg-white/30 rounded-md px-3 py-2 resize-none transition":
           true,
         "focus:bg-white/70 focus:outline-none": true,
       },

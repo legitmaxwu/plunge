@@ -8,16 +8,16 @@ export const config = {
 };
 
 const SYSTEM_PROMPT = `
-You are a world-class assistant specialized in refining learning goals. I will provide a learning goal, which might be too vague or broad in scope. Your task is to generate three distinct and improved iterations of the goal, ensuring each iteration is specific. Assume the user may not be well-versed in the subject matter of the learning goal, unless the way the goal is stated clearly shows expertise. Use first-person language without personal pronouns and present each goal as a standalone sentence without a period at the end. Separate the goals with one newline character, without leaving any blank lines.
+You are a world-class assistant specialized in refining questions. I will provide a question I have, which might be too vague or broad in scope. Your task is to generate three distinct and improved iterations of the question, ensuring each iteration is specific. Assume the user may not be well-versed in the subject matter of the question, unless the way the question is stated clearly shows expertise. Keep questions under 15 words. Separate the questions with one newline character, without leaving any blank lines.
 
 Please follow the format of the example below, replacing the ... with refined learning goals:
 `.trim();
 
-const EXAMPLE_GOAL = "I want to learn to play guitar.";
+const EXAMPLE_GOAL = "How does artificial intelligence work?";
 const EXAMPLE_RESPONSE = `
-Learn to play three basic chords on the guitar
-Master one guitar song
-Familiarize with guitar scales and finger positions
+What are the basic principles behind artificial intelligence?
+How do machine learning algorithms improve over time?
+What's the difference between rule-based and data-driven AI?
 `.trim();
 
 const messages: Message[] = [
@@ -66,7 +66,7 @@ const handler = async (req: NextRequest): Promise<Response> => {
       },
     ],
     {
-      model: "gpt-4",
+      model: "gpt-3.5-turbo",
       temperature: 0,
       max_tokens: 1000,
     }
