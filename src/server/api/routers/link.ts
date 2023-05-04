@@ -73,8 +73,6 @@ export const linkRouter = createTRPCRouter({
         throw new Error("Parent goal not found");
       }
 
-      console.log(parentGoal);
-
       const lexoRankIndices = getLexoRankIndices(
         parentGoal.links?.lexoRankIndex ?? null,
         goalTitles.length

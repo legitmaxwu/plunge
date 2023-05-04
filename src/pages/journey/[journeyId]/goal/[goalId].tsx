@@ -192,9 +192,6 @@ function NewSubgoalButton(props: NewSubgoalButtonProps) {
         onMouseEnter={() => {
           if (!goalId) return;
 
-          if (disabled) return;
-
-          console.log("GOT FUCKED");
           setNewSubgoal({
             parentGoalId: goalId,
             subgoalTitle: subgoal,
@@ -351,10 +348,10 @@ function ChatBot() {
       const submit = ev.detail.submit ?? true;
       setQuery(query);
 
-      ref.current?.focus();
-
       if (submit) {
         handleSubmit(query);
+      } else {
+        ref.current?.focus();
       }
     };
     window.addEventListener("chatbotSubmit", handleChatbotSubmit);
