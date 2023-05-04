@@ -10,6 +10,7 @@ import {
   useRef,
   type ButtonHTMLAttributes,
   type ReactNode,
+  type MouseEvent,
 } from "react";
 
 import { useQueryParam } from "../../../../hooks/useQueryParam";
@@ -155,51 +156,57 @@ function NewSubgoalButton(props: NewSubgoalButtonProps) {
     api.link.createChildren.useMutation({});
 
   const disabled = isLoading || loadingAi;
+
+  const handleClick = useCallback(
+    (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      toast
+        .promise(
+          createPrereqs({
+            parentGoalId: goalId,
+            goalTitles: [subgoal],
+          }).then(async (res) => {
+            setNewSubgoal(null);
+            await util.link.getAllUnderGoal.invalidate({
+              parentGoalId: goalId,
+            });
+            // if (res[0] && journeyId) {
+            //   await router
+            //     .push(`/journey/${journeyId}/goal/${res[0]?.goalId}`)
+            //     .catch(handleError);
+            // }
+          }),
+          {
+            loading: "Creating question...",
+            success: "Question created!",
+            error: "Error creating question",
+          }
+        )
+        .catch(handleError);
+    },
+    [subgoal, goalId, setNewSubgoal, util, createPrereqs]
+  );
   return (
     <div className="-ml-6 mb-2">
       <button
         disabled={disabled}
-        onClick={() => {
-          toast
-            .promise(
-              createPrereqs({
-                parentGoalId: goalId,
-                goalTitles: [subgoal],
-              }).then(async (res) => {
-                setNewSubgoal(null);
-                await util.link.getAllUnderGoal.invalidate({
-                  parentGoalId: goalId,
-                });
-                // if (res[0] && journeyId) {
-                //   await router
-                //     .push(`/journey/${journeyId}/goal/${res[0]?.goalId}`)
-                //     .catch(handleError);
-                // }
-              }),
-              {
-                loading: "Creating question...",
-                success: "Question created!",
-                error: "Error creating question",
-              }
-            )
-            .catch(handleError);
-        }}
+        onClick={handleClick}
         className={clsx({
           "block rounded-sm bg-white/40 px-3 py-1.5 text-left": true,
           "hover:bg-white/70": !disabled,
           "cursor-not-allowed": disabled,
         })}
-        onMouseEnter={() => {
-          if (!goalId) return;
-
-          setNewSubgoal({
-            parentGoalId: goalId,
-            subgoalTitle: subgoal,
-          });
-        }}
-        onMouseLeave={() => {
-          setNewSubgoal(null);
-        }}
+        // onMouseEnter={(e) => {
+        //   e.preventDefault();
+        //   setNewSubgoal({
+        //     parentGoalId: goalId,
+        //     subgoalTitle: subgoal,
+        //   });
+        // }}
+        // onMouseLeave={(e) => {
+        //   e.preventDefault();
+        //   setNewSubgoal(null);
+        // }}
       >
         {isLoading && <Spinner />}
         {subgoal}
@@ -472,12 +479,7 @@ function ChatBot() {
                 // Strip out all instances of the string "҂"
                 const stripped = text.replace(/҂/g, "");
 
-                return (
-                  <NewSubgoalButton
-                    key={props.key}
-                    subgoal={stripped}
-                  ></NewSubgoalButton>
-                );
+                return <NewSubgoalButton subgoal={stripped}></NewSubgoalButton>;
               }
               return (
                 <li {...props} className={className}>
@@ -485,32 +487,6 @@ function ChatBot() {
                 </li>
               );
             },
-            // ul({ className, children, ...props }) {
-            //   const hasPrereqBlock = Children.toArray(children).some(
-            //     (child: ReactNode) => {
-            //       if (!isValidElement(child)) {
-            //         return false;
-            //       }
-            //       if (child.type !== "li") {
-            //         return false;
-            //       }
-
-            //       const text = child.props.children?.join("") ?? "";
-
-            //       return text.startsWith("҂");
-            //     }
-            //   );
-            //   return (
-            //     <ul
-            //       {...props}
-            //       className={clsx(className, {
-            //         "pl-0": hasPrereqBlock,
-            //       })}
-            //     >
-            //       {children}
-            //     </ul>
-            //   );
-            // },
           }}
         >
           {response || "Response will appear here…"}

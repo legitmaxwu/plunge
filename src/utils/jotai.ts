@@ -7,7 +7,6 @@ export const goalAtom = atom<RouterOutputs["goal"]["get"] | undefined>(
   undefined
 );
 
-export const newPrereqAtom = atom<string | null>(null);
 export const newSubgoalAtom = atom<{
   parentGoalId: string;
   subgoalTitle: string;
