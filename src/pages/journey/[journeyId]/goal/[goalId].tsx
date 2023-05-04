@@ -347,7 +347,7 @@ function ChatBot() {
       </div>
       <div className="h-4"></div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-1">
         <Button
           size="small"
           onClick={() => {
@@ -382,7 +382,7 @@ function ChatBot() {
       <div className="h-1"></div>
       <Textarea
         ref={ref}
-        className="w-full text-sm"
+        className="w-full"
         placeholder="Type here…"
         value={query}
         onValueChange={setQuery}
@@ -405,7 +405,7 @@ function ChatBot() {
       <div className="rounded-sm bg-white/30 px-3 py-2">
         <ReactMarkdown
           className={clsx({
-            "prose prose-sm": true,
+            prose: true,
             "text-gray-400": !response,
           })}
           remarkPlugins={[remarkGfm]}
@@ -649,7 +649,7 @@ function ManageGuide() {
                     <Fade className="h-64 overflow-y-scroll bg-white/20 p-2">
                       <ReactMarkdown
                         className={clsx({
-                          "prose prose-sm": true,
+                          prose: true,
                         })}
                         remarkPlugins={[remarkGfm]}
                       >
@@ -712,7 +712,7 @@ function ManageGuide() {
         {isEditing ? (
           <ReactTextareaAutosize
             placeholder="Type here..."
-            className="w-full resize-none rounded-sm border border-transparent bg-transparent p-4 font-mono text-sm transition focus:border-gray-700 focus:outline-none"
+            className="w-full resize-none rounded-sm border border-transparent bg-transparent p-4 font-mono transition focus:border-gray-700 focus:outline-none"
             value={goal.guideMarkdown ?? ""}
             onChange={(e) => {
               setGoal((goal) => {

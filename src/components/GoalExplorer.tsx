@@ -295,7 +295,7 @@ function RenderGoalItem(props: RenderGoalItemProps) {
         </button>
         <button
           className={clsx({
-            "w-full flex-1 shrink-0 text-left text-sm": true,
+            "w-full flex-1 shrink-0 text-left": true,
             "hover:text-gray-700": !isViewingThisGoal,
             "font-semibold": isViewingThisGoal,
           })}
@@ -375,7 +375,7 @@ function RenderGoalItem(props: RenderGoalItemProps) {
             <div
               className={clsx(
                 {
-                  "mb-1 ml-2.5 flex items-center justify-between pl-1 text-left text-sm":
+                  "mb-1 ml-2.5 flex items-center justify-between pl-1 text-left":
                     true,
                   "bg-white/30": !highlightNewSubgoal,
                   "bg-blue-50": highlightNewSubgoal,
@@ -439,7 +439,7 @@ function RenderGoalItem(props: RenderGoalItemProps) {
                 );
               })}
               {showNewSubgoal && (
-                <Fade className="ml-2.5 mt-1 bg-white/30 px-1 text-sm">
+                <Fade className="ml-2.5 mt-1 bg-white/30 px-1">
                   {newSubgoal}
                 </Fade>
               )}

@@ -40,6 +40,7 @@ export function Navbar() {
   const { signOut } = useClerk();
 
   const onGoalPage = router.pathname.includes("/goal");
+  const notAtRoot = router.pathname !== "/";
 
   const [turboMode, setTurboMode] = useAtom(turboModeAtom);
 
@@ -52,15 +53,18 @@ export function Navbar() {
             <div className="mb-0.5 text-lg font-bold text-blue-950">Plunge</div>
           </div>
           <div className="flex select-none items-center gap-2 md:gap-6">
-            <button
-              className="flex items-center gap-1 hover:text-gray-600"
-              onClick={() => {
-                router.push("/").catch(handleError);
-              }}
-            >
-              {/* <HomeIcon strokeWidth={2} className="h-4 w-4" /> */}
-              Home
-            </button>
+            {notAtRoot && (
+              <button
+                className="flex items-center gap-1 hover:text-gray-600"
+                onClick={() => {
+                  router.push("/").catch(handleError);
+                }}
+              >
+                {/* <HomeIcon strokeWidth={2} className="h-4 w-4" /> */}
+                Home
+              </button>
+            )}
+
             {onGoalPage && (
               <>
                 <Dialog>
@@ -122,14 +126,12 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center">
-          <div className="flex items-center gap-2">
-            <div className="whitespace-nowrap font-semibold">
-              {user?.fullName}
-            </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <div className="flex cursor-pointer items-center gap-1">
-                  <Avatar className="h-8 w-8">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="flex cursor-pointer select-none items-center gap-2.5">
+                <div className="whitespace-nowrap">{user?.firstName}</div>
+                <div className="flex items-center gap-1">
+                  <Avatar className="h-7 w-7 border border-blue-950">
                     <AvatarImage src={user?.profileImageUrl} />
                     <AvatarFallback>
                       {user?.firstName?.[0]?.toUpperCase()}
@@ -138,19 +140,19 @@ export function Navbar() {
                   </Avatar>
                   <ChevronDownIcon className="h-3 w-3" />
                 </div>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-40" align="end">
-                <DropdownMenuItem
-                  className="text-red-900/90"
-                  onClick={() => {
-                    signOut().catch(handleError);
-                  }}
-                >
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-40" align="end">
+              <DropdownMenuItem
+                className="text-gray-600"
+                onClick={() => {
+                  signOut().catch(handleError);
+                }}
+              >
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       <div className="h-px bg-gradient-to-r from-sky-300 to-blue-300"></div>

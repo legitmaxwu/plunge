@@ -45,7 +45,7 @@ export const Button = React.forwardRef(
 
     const styles = clsx(
       {
-        ["rounded-sm select-none border transition flex items-center justify-center"]:
+        ["rounded-md shadow-sm select-none border transition flex items-center justify-center"]:
           true,
         ["bg-white/30 border-black/20 hover:bg-white/50"]:
           variant === "primary" && !disabled,
