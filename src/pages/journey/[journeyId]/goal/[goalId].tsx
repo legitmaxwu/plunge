@@ -8,9 +8,7 @@ import {
   useCallback,
   useMemo,
   useRef,
-  type HTMLProps,
   type ButtonHTMLAttributes,
-  Children,
   type ReactNode,
 } from "react";
 
@@ -18,9 +16,6 @@ import { useQueryParam } from "../../../../hooks/useQueryParam";
 import { type RouterOutputs, api } from "../../../../utils/api";
 import {
   ArrowTopRightOnSquareIcon,
-  ChevronDownIcon,
-  EllipsisHorizontalIcon,
-  InformationCircleIcon,
   LinkIcon,
   PencilSquareIcon,
   QuestionMarkCircleIcon,
@@ -40,13 +35,11 @@ import { useAtom } from "jotai";
 import { useAutoSave } from "../../../../hooks/useAutosave";
 import { Textarea } from "../../../../components/base/Textarea";
 import { useChatCompletion } from "../../../../hooks/useChatCompletion";
-import { useTextSelection } from "@mantine/hooks";
-import { Button } from "../../../../components/base/Button";
+import { Button, Spinner } from "../../../../components/base/Button";
 import {
   goalAtom,
   newGuideAtom,
   loadingAiAtom,
-  newPrereqAtom,
   newSubgoalAtom,
   turboModeAtom,
 } from "../../../../utils/jotai";
@@ -54,10 +47,8 @@ import { parseDiff, Diff, Hunk } from "react-diff-view";
 import { applyPatch as diffApplyPatch } from "diff";
 import { Sparkles } from "../../../../components/Sparkles";
 import { GoalExplorer } from "../../../../components/GoalExplorer";
-import { usePrevious } from "../../../../hooks/usePrevious";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
-import { type } from "os";
 import { TextSelectionMenu } from "../../../../components/TextSelectionMenu";
 import {
   DropdownMenu,
@@ -73,22 +64,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../../../../components/base/Dialog";
-import { CreateDocumentGoal } from "../../../../components/CreateDocumentGoal";
 import { useWebsiteInfo } from "../../../../hooks/useWebsiteInfo";
 import { Input } from "../../../../components/base/Input";
 import { Fade } from "../../../../components/animate/Fade";
 import Head from "next/head";
 import { LocalStorageKey } from "../../../../utils/localstorage";
 import { LocalStorage } from "../../../../utils/localstorage";
-import { isValidElement } from "react";
-import { ReactElement } from "react";
-import { JSXElementConstructor } from "react";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "../../../../components/base/Tooltip";
+import { debounce } from "lodash";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "../../../../components/base/HoverCard";
 
 interface HeadingDropdownProps {
   sectionName: string;
@@ -106,12 +98,13 @@ function HeadingDropdown(props: HeadingDropdownProps) {
   );
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+    <HoverCard openDelay={0}>
+      <HoverCardTrigger asChild>
         <QuestionMarkCircleIcon className={styles} />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-40" align="start">
-        <DropdownMenuItem
+      </HoverCardTrigger>
+      <HoverCardContent className="flex flex-col py-1" align="start">
+        <button
+          className="px-3 py-1 text-left text-sm font-normal hover:bg-gray-100"
           onClick={() => {
             window.dispatchEvent(
               new CustomEvent("chatbotSubmit", {
@@ -123,8 +116,9 @@ function HeadingDropdown(props: HeadingDropdownProps) {
           }}
         >
           Study further
-        </DropdownMenuItem>
-        <DropdownMenuItem
+        </button>
+        <button
+          className="px-3 py-1 text-left text-sm font-normal hover:bg-gray-100"
           onClick={() => {
             window.dispatchEvent(
               new CustomEvent("chatbotSubmit", {
@@ -136,9 +130,9 @@ function HeadingDropdown(props: HeadingDropdownProps) {
           }}
         >
           Expand section
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </button>
+      </HoverCardContent>
+    </HoverCard>
   );
 }
 
@@ -147,19 +141,29 @@ type NewSubgoalButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 function NewSubgoalButton(props: NewSubgoalButtonProps) {
-  const { subgoal, ...rest } = props;
+  const { subgoal, onClick, ...rest } = props;
 
+  const goalId = useQueryParam("goalId", "string");
   const [newSubgoal, setNewSubgoal] = useAtom(newSubgoalAtom);
+  const [loading, setLoading] = useState(false);
 
   return (
-    <div className="-ml-6 mb-2 ">
+    <div className="-ml-6 mb-2">
       <Tooltip>
         <TooltipTrigger>
           <button
             {...rest}
+            onClick={() => {
+              // if onclick returns a promise,
+            }}
             className="block rounded-sm bg-white/40 px-3 py-1.5 text-left hover:bg-white/70"
             onMouseEnter={() => {
-              setNewSubgoal(subgoal);
+              if (!goalId) return;
+
+              setNewSubgoal({
+                parentGoalId: goalId,
+                subgoalTitle: subgoal,
+              });
             }}
             onMouseLeave={() => {
               setNewSubgoal(null);
@@ -573,6 +577,8 @@ function ManageGuide() {
     faviconUrl: websiteFaviconUrl,
     title: websiteTitle,
     markdown: websiteMarkdown,
+    fetchingFaviconAndTitle,
+    fetchingMarkdown,
   } = useWebsiteInfo(urlToLoad);
 
   const [turboMode] = useAtom(turboModeAtom);
@@ -613,72 +619,74 @@ function ManageGuide() {
               icon={LinkIcon}
             />
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="flex w-full flex-col items-center">
             <DialogHeader>
               <DialogTitle>Load text from webpage</DialogTitle>
-              <DialogDescription className="flex flex-col items-center">
-                <div className="h-4"></div>
-                <div className="flex w-full gap-2">
-                  <Input
-                    className="w-full"
-                    value={url}
-                    onValueChange={setUrl}
-                    placeholder="https://example.com"
-                  />
-                  <Button
-                    onClick={() => {
-                      setUrlToLoad(url);
-                    }}
-                  >
-                    Preview
-                  </Button>
-                </div>
-                <div className="h-4"></div>
-                {websiteFaviconUrl && websiteTitle && (
-                  <Fade className="flex w-full items-center border-b border-black/20 bg-white/20 px-2 py-0.5">
-                    <img
-                      src={websiteFaviconUrl}
-                      alt="Favicon"
-                      className="mr-2 h-4 w-4"
-                    />
-                    <span className="truncate font-bold">{websiteTitle}</span>
-                  </Fade>
-                )}
-                {websiteMarkdown && (
-                  <>
-                    <Fade className="h-64 overflow-y-scroll bg-white/20 p-2">
-                      <ReactMarkdown
-                        className={clsx({
-                          prose: true,
-                        })}
-                        remarkPlugins={[remarkGfm]}
-                      >
-                        {websiteMarkdown}
-                      </ReactMarkdown>
-                    </Fade>
-                    <div className="h-4"></div>
-                    <Button
-                      onClick={() => {
-                        const conf = window.confirm(
-                          "Are you sure you want to set this as the guide? The current guide will be overwritten."
-                        );
-                        if (!conf) return;
-                        setGoal((prev) => {
-                          if (!prev) return prev;
-                          return {
-                            ...prev,
-                            guideMarkdown: websiteMarkdown,
-                          };
-                        });
-                        setIsOpen(false);
-                      }}
-                    >
-                      Set as Guide
-                    </Button>
-                  </>
-                )}
-              </DialogDescription>
+              <DialogDescription className=""></DialogDescription>
             </DialogHeader>
+            <div className="h-4"></div>
+            <div className="flex w-full gap-2">
+              <Input
+                className="w-full"
+                value={url}
+                onValueChange={setUrl}
+                placeholder="https://example.com"
+              />
+              <Button
+                loading={fetchingFaviconAndTitle || fetchingMarkdown}
+                onClick={() => {
+                  setUrlToLoad(url);
+                }}
+              >
+                Preview
+              </Button>
+            </div>
+            <div className="h-4"></div>
+            {websiteFaviconUrl && websiteTitle && (
+              <Fade className="flex w-full items-center border-b border-black/20 bg-white/20 px-2 py-0.5">
+                <img
+                  src={websiteFaviconUrl}
+                  alt="Favicon"
+                  className="mr-2 h-4 w-4"
+                />
+                <span className="truncate font-bold">{websiteTitle}</span>
+              </Fade>
+            )}
+            {websiteMarkdown && (
+              <>
+                <Fade>
+                  <ScrollArea className="h-64 w-full bg-white/20 p-2">
+                    <ReactMarkdown
+                      className={clsx({
+                        "prose w-full": true,
+                      })}
+                      remarkPlugins={[remarkGfm]}
+                    >
+                      {websiteMarkdown}
+                    </ReactMarkdown>
+                  </ScrollArea>
+                </Fade>
+                <div className="h-4"></div>
+                <Button
+                  onClick={() => {
+                    const conf = window.confirm(
+                      "Are you sure you want to set this as the guide? The current guide will be overwritten."
+                    );
+                    if (!conf) return;
+                    setGoal((prev) => {
+                      if (!prev) return prev;
+                      return {
+                        ...prev,
+                        guideMarkdown: websiteMarkdown,
+                      };
+                    });
+                    setIsOpen(false);
+                  }}
+                >
+                  Set as Guide
+                </Button>
+              </>
+            )}
           </DialogContent>
         </Dialog>
 
@@ -777,60 +785,10 @@ function ManageGuide() {
                   );
                 },
                 a({ href, children, className, node, ...props }) {
-                  // make target="_blank" for external links
-                  const isExternal = href?.startsWith("http");
-                  const isWikipediaLink = href?.includes("wikipedia.org");
-
                   return (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <div
-                          // {...props}
-                          // href={href}
-                          // target={isExternal ? "_blank" : undefined}
-                          // rel={isExternal ? "noopener noreferrer" : undefined}
-                          className={clsx(
-                            className,
-                            "inline cursor-pointer text-cyan-600 underline hover:text-cyan-500"
-                          )}
-                        >
-                          {children}
-                        </div>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-40" align="start">
-                        <DropdownMenuItem
-                          onClick={() => {
-                            window.dispatchEvent(
-                              new CustomEvent("chatbotSubmit", {
-                                detail: {
-                                  query: `Tell me more about "${
-                                    children?.join("") ?? ""
-                                  }"`,
-                                },
-                              })
-                            );
-                          }}
-                        >
-                          What is this?
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <a
-                            href={href}
-                            target={isExternal ? "_blank" : undefined}
-                            rel={isExternal ? "noopener noreferrer" : undefined}
-                            className={clsx(className, "cursor-pointer")}
-                          >
-                            {isWikipediaLink ? "Wikipedia" : "Open Link"}
-                            {
-                              // add external link icon
-                              isExternal && (
-                                <ArrowTopRightOnSquareIcon className="mb-1 ml-1 inline h-4 w-4" />
-                              )
-                            }
-                          </a>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <RenderLink href={href} className={className}>
+                      {children}
+                    </RenderLink>
                   );
                 },
               }}
@@ -843,6 +801,73 @@ function ManageGuide() {
         )}
       </div>
       <TextSelectionMenu parentRef={mdRef} />
+    </div>
+  );
+}
+
+interface RenderLinkProps {
+  href?: string;
+  children: ReactNode & ReactNode[];
+  className?: string;
+}
+
+function RenderLink(props: RenderLinkProps) {
+  const { href, children, className } = props;
+  const isExternal = href?.startsWith("http");
+  const isWikipediaLink = href?.includes("wikipedia.org");
+
+  return (
+    <div className="inline">
+      <HoverCard openDelay={0}>
+        <HoverCardTrigger>
+          <div
+            // {...props}
+            // href={href}
+            // target={isExternal ? "_blank" : undefined}
+            // rel={isExternal ? "noopener noreferrer" : undefined}
+            className={clsx(
+              className,
+              "inline cursor-pointer font-semibold text-cyan-800 hover:underline"
+            )}
+          >
+            {children}
+          </div>
+        </HoverCardTrigger>
+        <HoverCardContent className="flex flex-col py-1" align="start">
+          <button
+            className="px-3 py-1 text-left text-sm hover:bg-gray-100"
+            onClick={() => {
+              window.dispatchEvent(
+                new CustomEvent("chatbotSubmit", {
+                  detail: {
+                    query: `Tell me more about "${children?.join("") ?? ""}"`,
+                  },
+                })
+              );
+            }}
+          >
+            What is this?
+          </button>
+
+          <a
+            href={href}
+            target={isExternal ? "_blank" : undefined}
+            rel={isExternal ? "noopener noreferrer" : undefined}
+            className={clsx(
+              className,
+              "cursor-pointer px-3 py-1 text-left text-sm hover:bg-gray-100"
+            )}
+          >
+            {isWikipediaLink ? "Wikipedia" : "Open Link"}
+            {
+              // add external link icon
+              isExternal && (
+                <ArrowTopRightOnSquareIcon className="mb-1 ml-1 inline h-4 w-4" />
+              )
+            }
+          </a>
+        </HoverCardContent>
+      </HoverCard>
     </div>
   );
 }
@@ -896,8 +921,10 @@ const GoalPage: NextPage = () => {
       <Head>
         <title>Plunge - {goal?.title}</title>
       </Head>
+
       <div className="flex h-screen flex-col bg-gradient-to-r from-sky-200 to-blue-200">
         <Navbar />
+
         <div className="flex w-full flex-1 overflow-hidden">
           <div className="h-full w-1/5 max-w-sm shrink-0">
             <ScrollArea className="h-full w-full p-8 py-0">

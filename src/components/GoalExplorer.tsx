@@ -82,17 +82,14 @@ function RenderGoalItem(props: RenderGoalItemProps) {
     api.link.createChildren.useMutation({});
 
   const handleCreateSubgoal = useCallback(() => {
-    const processed = newGoal.trim();
-    if (!processed) {
-      toast.error("Please enter a subgoal title.");
-      return;
-    }
+    const trimmed = newGoal.trim();
+    const processed = trimmed || "Untitled";
 
     toast
       .promise(
         createSubgoal({
           parentGoalId: goalId,
-          goalTitles: [newGoal],
+          goalTitles: [processed],
         }).then(async (res) => {
           await utils.link.getAllUnderGoal.invalidate({
             parentGoalId: goalId,
@@ -106,9 +103,9 @@ function RenderGoalItem(props: RenderGoalItemProps) {
           }
         }),
         {
-          loading: "Creating subgoal...",
-          success: "Subgoal created",
-          error: "Error creating subgoal.",
+          loading: "Creating question...",
+          success: "Question created!",
+          error: "Error creating question.",
         }
       )
       .catch(handleError);
@@ -263,7 +260,7 @@ function RenderGoalItem(props: RenderGoalItemProps) {
 
   // const highlightNewSubgoal = isViewingThisGoal && !!newSubgoal;
   const highlightNewSubgoal = false; // This is for the new subgoal textarea
-  const showNewSubgoal = isViewingThisGoal && !!newSubgoal;
+  const showNewSubgoal = !!newSubgoal && goalId === newSubgoal.parentGoalId;
 
   if (!goal) {
     return null;
@@ -325,17 +322,27 @@ function RenderGoalItem(props: RenderGoalItemProps) {
             </button> */}
 
             <SmallIconButton
-              tooltipText="Add subgoal"
+              tooltipText="Add question"
               icon={PlusIcon}
+              onMouseEnter={() => {
+                setNewSubgoal({
+                  parentGoalId: goalId,
+                  subgoalTitle: "Untitled",
+                });
+              }}
+              onMouseLeave={() => {
+                setNewSubgoal(null);
+              }}
               onClick={(e) => {
                 e.stopPropagation();
-                handleAddClick();
+                // handleAddClick();
+                handleCreateSubgoal();
               }}
             />
             {!isViewingThisGoal && (
               <SmallIconButton
                 icon={TrashIcon}
-                tooltipText="Delete goal"
+                tooltipText="Delete question"
                 className="text-red-800"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -350,9 +357,9 @@ function RenderGoalItem(props: RenderGoalItemProps) {
                           });
                       }),
                       {
-                        loading: "Deleting goal...",
-                        success: "Goal deleted.",
-                        error: "Error deleting goal.  ",
+                        loading: "Deleting question...",
+                        success: "Question deleted.",
+                        error: "Error deleting question.  ",
                       }
                     )
                     .catch(handleError);
@@ -395,8 +402,10 @@ function RenderGoalItem(props: RenderGoalItemProps) {
                     true,
                   // "bg-blue-50": isViewingThisGoal && !!newSubgoal,
                 })}
-                placeholder="Name of subgoal"
-                value={highlightNewSubgoal ? newSubgoal ?? "" : newGoal}
+                placeholder="Type question..."
+                value={
+                  highlightNewSubgoal ? newSubgoal?.subgoalTitle ?? "" : newGoal
+                }
                 onChange={(e) => {
                   setNewGoal(e.target.value);
                 }}
@@ -439,8 +448,8 @@ function RenderGoalItem(props: RenderGoalItemProps) {
                 );
               })}
               {showNewSubgoal && (
-                <Fade className="ml-2.5 mt-1 bg-white/30 px-1">
-                  {newSubgoal}
+                <Fade className="my-1 ml-2.5 bg-white/30 px-1">
+                  {newSubgoal?.subgoalTitle}
                 </Fade>
               )}
             </SortableContext>

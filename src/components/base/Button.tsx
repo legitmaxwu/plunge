@@ -2,7 +2,7 @@ import clsx from "clsx";
 import React, { type ButtonHTMLAttributes } from "react";
 import { LoaderIcon } from "react-hot-toast";
 
-function Spinner() {
+export function Spinner() {
   return (
     <svg
       role="status"

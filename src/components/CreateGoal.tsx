@@ -252,7 +252,7 @@ function RefineGoal(props: RefineGoalProps) {
 
   return (
     <StepCard>
-      <div className="text-xl">Refine your question.</div>
+      <div className="text-xl">Improve your question.</div>
       <div className="h-8"></div>
       <RenderAIOptions
         options={[currentGoal, ...refineOptions]}
@@ -301,11 +301,12 @@ function RefineGoal(props: RefineGoalProps) {
 interface FinalizeGoalProps {
   currentGoal: string;
   onRefineMore: () => void;
-  onComplete: () => void;
+  onComplete: () => Promise<any>;
 }
 
 function FinalizeGoal(props: FinalizeGoalProps) {
   const { currentGoal, onRefineMore, onComplete } = props;
+  const [loading, setLoading] = useState(false);
   return (
     <StepCard>
       <div className="text-xl">{currentGoal}</div>
@@ -314,7 +315,17 @@ function FinalizeGoal(props: FinalizeGoalProps) {
         <Button variant="ghost" onClick={onRefineMore}>
           Refine More
         </Button>
-        <Button onClick={onComplete}>{"Let's Begin!"}</Button>
+        <Button
+          loading={loading}
+          onClick={() => {
+            setLoading(true);
+            onComplete().finally(() => {
+              setLoading(false);
+            });
+          }}
+        >
+          {"Let's Begin!"}
+        </Button>
       </div>
     </StepCard>
   );
@@ -354,27 +365,20 @@ export function CreateGoal() {
           onRefineMore={() => {
             send({ type: "REFINE_MORE" });
           }}
-          onComplete={() => {
-            toast
-              .promise(
-                mutateAsync({
-                  goalTitle: state.context.goal,
-                }).then((res) => {
-                  if (parentGoalId) {
-                    addChild(parentGoalId, res.id);
-                  } else {
-                    init(res.id);
-                  }
-                  router
-                    .push(`/journey/${res.id}/goal/${res.goalId}`)
-                    .catch(handleError);
-                }),
-                {
-                  loading: "Creating goal...",
-                  success: "Goal created!",
-                  error: "Failed to create goal.",
+          onComplete={async () => {
+            return mutateAsync({
+              goalTitle: state.context.goal,
+            })
+              .then((res) => {
+                if (parentGoalId) {
+                  addChild(parentGoalId, res.id);
+                } else {
+                  init(res.id);
                 }
-              )
+                router
+                  .push(`/journey/${res.id}/goal/${res.goalId}`)
+                  .catch(handleError);
+              })
               .catch(handleError);
           }}
         />

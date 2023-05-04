@@ -22,6 +22,15 @@ export const publicRouter = createTRPCRouter({
 
           // Convert the article HTML to markdown
           const turndownService = new TurndownService();
+
+          // Add a custom rule to ignore images and iframes
+          turndownService.addRule("ignoreNonText", {
+            filter: ["img", "iframe"],
+            replacement: (content, node, options) => {
+              return "";
+            },
+          });
+
           const markdown = turndownService.turndown(article?.content ?? "");
 
           // Return the markdown
