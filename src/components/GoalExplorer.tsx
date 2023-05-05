@@ -98,7 +98,7 @@ function RenderGoalItem(props: RenderGoalItemProps) {
           setAdding(false);
           if (res[0] && journeyId) {
             router
-              .push(`/journey/${journeyId}/goal/${res[0]?.goalId}`)
+              .push(`/plunge/${journeyId}/goal/${res[0]?.goalId}`)
               .catch(handleError);
           }
         }),
@@ -300,7 +300,7 @@ function RenderGoalItem(props: RenderGoalItemProps) {
             e.stopPropagation();
             if (!goal || !journey) return;
             router
-              .push(`/journey/${journey.id}/goal/${goal.id}`)
+              .push(`/plunge/${journey.id}/goal/${goal.id}`)
               .catch(handleError);
           }}
         >
@@ -314,7 +314,7 @@ function RenderGoalItem(props: RenderGoalItemProps) {
                 e.stopPropagation();
                 if (!goal || !journey) return;
                 router
-                  .push(`/journey/${journey.id}/goal/${goal.id}`)
+                  .push(`/plunge/${journey.id}/goal/${goal.id}`)
                   .catch(handleError);
               }}
             >

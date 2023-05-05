@@ -28,7 +28,7 @@ function HomePage() {
       <SidePadding className="justify-between">
         <div className="h-16"></div>
         <div className="">
-          <div className="text-2xl font-bold">{"Journeys"}</div>
+          <div className="text-2xl font-bold">{"Plunges"}</div>
           <div className="h-8"></div>
           <div className="flex flex-wrap items-center gap-2">
             {isLoading && (
@@ -45,7 +45,7 @@ function HomePage() {
                   init(journey.id);
 
                   router
-                    .push(`/journey/${journey.id}/goal/${journey.goalId}`)
+                    .push(`/plunge/${journey.id}/goal/${journey.goalId}`)
                     .catch(handleError);
                 }}
               >
@@ -66,7 +66,7 @@ function HomePage() {
               }}
               className="shadow-md"
             >
-              Start a new journey
+              Begin a new plunge 💦
             </Button>
           </Sparkles>
         </div>

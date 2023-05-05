@@ -151,7 +151,7 @@ function InitGoal(props: InitGoalProps) {
   );
   return (
     <StepCard>
-      <div className="text-xl">Every journey starts with a question.</div>
+      <div className="text-xl">Every plunge starts with a question.</div>
       {parentGoalId && (
         <>
           <div className="h-4"></div>
@@ -376,7 +376,7 @@ export function CreateGoal() {
                   init(res.id);
                 }
                 router
-                  .push(`/journey/${res.id}/goal/${res.goalId}`)
+                  .push(`/plunge/${res.id}/goal/${res.goalId}`)
                   .catch(handleError);
               })
               .catch(handleError);

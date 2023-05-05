@@ -47,7 +47,7 @@ export const Button = React.forwardRef(
       {
         ["rounded-md shadow-sm select-none border transition flex items-center justify-center"]:
           true,
-        ["bg-white/30 border-black/20 hover:bg-white/50"]:
+        ["bg-white/50 border-black/20 hover:bg-white/70"]:
           variant === "primary" && !disabled,
         ["bg-transparent hover:bg-black/10 border-transparent"]:
           variant === "ghost" && !disabled,

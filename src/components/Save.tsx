@@ -71,6 +71,8 @@ export function Save() {
     };
   }, [saved]);
 
+  if (!goalId) return null;
+
   return (
     <div className="text-gray-500">
       {saving ? (

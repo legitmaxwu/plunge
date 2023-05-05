@@ -172,7 +172,7 @@ function NewSubgoalButton(props: NewSubgoalButtonProps) {
             });
             // if (res[0] && journeyId) {
             //   await router
-            //     .push(`/journey/${journeyId}/goal/${res[0]?.goalId}`)
+            //     .push(`/plunge/${journeyId}/goal/${res[0]?.goalId}`)
             //     .catch(handleError);
             // }
           }),
