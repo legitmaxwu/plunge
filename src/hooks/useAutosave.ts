@@ -52,11 +52,28 @@ export const useAutoSave = <TData extends { id: string }>({
 
   const prevData = usePrevious(data);
 
-  useEffect(() => {
-    if (equal(data, prevData)) return;
+  const saved = useMemo(() => {
+    if (equal(data, prevData)) return true;
 
     if (data && remoteData && shouldSave(remoteData, data)) {
+      return false;
+    }
+
+    return true;
+  }, [data, prevData, remoteData, shouldSave]);
+
+  useEffect(() => {
+    if (!saved) {
       debouncedSave(data);
     }
-  }, [data, debouncedSave, prevData, remoteData, shouldSave]);
+  }, [data, debouncedSave, saved]);
+
+  return useMemo(() => {
+    return {
+      saved,
+      save: () => {
+        debouncedSave.flush();
+      },
+    };
+  }, [debouncedSave, saved]);
 };

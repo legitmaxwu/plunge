@@ -33,6 +33,7 @@ import {
 } from "./base/Tooltip";
 import { useAtom } from "jotai";
 import { turboModeAtom } from "../utils/jotai";
+import { Save } from "./Save";
 
 export function Navbar() {
   const router = useRouter();
@@ -125,7 +126,8 @@ export function Navbar() {
           </div>
         </div>
 
-        <div className="flex items-center">
+        <div className="flex items-center gap-8">
+          <Save />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex cursor-pointer select-none items-center gap-2.5">

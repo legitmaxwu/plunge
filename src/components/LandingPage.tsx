@@ -6,6 +6,7 @@ import { SignIn, useClerk, useSignIn, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/router";
 import ReactPlayer from "react-player";
 import { handleError } from "../utils/handleError";
+import { FishAnimation } from "./FishAnimation";
 
 const LandingPage = () => {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -21,7 +22,7 @@ const LandingPage = () => {
         <p className="text-2xl text-gray-600">explore your curiosity {":)"}</p>
         <div className="h-12"></div>
         <button
-          className="flex items-center gap-2 rounded-md bg-white/20 px-6 py-2 transition hover:bg-white/40"
+          className="flex items-center gap-4 rounded-md bg-white/70 px-12 py-4 text-lg transition hover:bg-white"
           onClick={() => {
             signIn
               ?.authenticateWithRedirect({
@@ -32,11 +33,11 @@ const LandingPage = () => {
               .catch(handleError);
           }}
         >
-          <img src="/google.png" className="h-4 w-4" alt="google logo" />
+          <img src="/google.png" className="h-6 w-6" alt="google logo" />
           Sign in with Google
         </button>
         <div className="h-16"></div>
-        <div className="relative aspect-video h-96 xl:h-120 2xl:h-160">
+        <div className="relative z-50 aspect-video h-96 xl:h-120 2xl:h-160">
           <div className="h-full w-full animate-pulse rounded-sm bg-black/10"></div>
           <ReactPlayer
             style={{
@@ -51,7 +52,7 @@ const LandingPage = () => {
           />
         </div>
       </div>
-      \
+      {/* <FishAnimation /> */}
     </div>
   );
 };

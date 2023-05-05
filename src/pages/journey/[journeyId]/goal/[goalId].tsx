@@ -839,31 +839,8 @@ const GoalPage: NextPage = () => {
   const goalId = useQueryParam("goalId", "string");
   const utils = api.useContext();
 
-  const { mutateAsync: updateGoal } = api.goal.update.useMutation({
-    onSuccess: (goal) => {
-      toast.success("Saved!");
-    },
-  });
   const [goal, setGoal] = useAtom(goalAtom);
   const [loadingAi, setLoadingAi] = useAtom(loadingAiAtom);
-  const queryOutput = api.goal.get.useQuery(
-    { id: goalId ?? "" },
-    {
-      // enabled: !loadingAi,
-      refetchOnWindowFocus: false,
-    }
-  );
-
-  useAutoSave<RouterOutputs["goal"]["get"]>({
-    remoteData: queryOutput.data,
-    saveFunction: updateGoal,
-    data: goal,
-    setData: setGoal,
-    shouldSave: (prev, next) => {
-      const keys = ["guideMarkdown", "title"] as const;
-      return keys.some((key) => prev?.[key] !== next?.[key]);
-    },
-  });
 
   const [nextGuide, setNextGuide] = useAtom(newGuideAtom);
   useEffect(() => {
@@ -939,13 +916,9 @@ const GoalPage: NextPage = () => {
               </Fade>
             ) : (
               <div />
-              // <Fade className="p-8">
-              //   <div className="w-1/2 animate-pulse rounded-sm bg-black/5 text-xl">
-              //     &nbsp;
-              //   </div>
-              // </Fade>
             )}
           </div>
+
           <div className="w-px shrink-0 bg-black/20"></div>
           <div className="h-full md:w-2/5">
             <ScrollArea className="h-full w-full p-8 py-0">
