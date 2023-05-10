@@ -274,7 +274,7 @@ function RenderQuestion(props: RenderQuestionProps) {
             <div className="border-transparent px-4 py-3" ref={mdRef}>
               <ReactMarkdown
                 className={clsx({
-                  prose: true,
+                  "prose break-words": true,
                   "select-none text-gray-400": !question.guideMarkdown,
                 })}
                 remarkPlugins={[remarkGfm]}
