@@ -54,7 +54,7 @@ const LandingPage = () => {
           />
         </div> */}
       </div>
-      {/* <FishAnimation /> */}
+      <FishAnimation />
     </div>
   );
 };

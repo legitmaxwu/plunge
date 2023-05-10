@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { motion, useAnimate } from "framer-motion";
 import { handleError } from "../utils/handleError";
 import clsx from "clsx";
-import { useMediaQuery } from "../hooks/useMediaQuery";
+import mobile from "is-mobile";
 
 type Coordinates = { x: number; y: number };
 const fishGifs = [
@@ -77,6 +77,15 @@ const MovingFish: React.FC<MovingFishProps> = ({ src, initialPosition }) => {
     let pointB = randomNextPositionFrom(pointA);
     determineDirection(pointA, pointB);
 
+    // 50% chance to wait before starting
+    // const wait = Math.random() > 0.5;
+    // if (wait) {
+    //   const randomPauseTime = Math.random() * 1000;
+    //   await new Promise((resolve) => {
+    //     setTimeout(resolve, randomPauseTime);
+    //   });
+    // }
+
     while (true) {
       // Wait random amount of time
       // Random time between 0 and 2 seconds
@@ -103,6 +112,8 @@ const MovingFish: React.FC<MovingFishProps> = ({ src, initialPosition }) => {
           ease: [0.23, 1, 0.32, 1], // Cubic-bezier easing function for "dart" effect
         }
       );
+
+      console.log("Lmfao");
       // await new Promise((resolve) => {
       //   setTimeout(resolve, animationTimeMs - endEarlyMs);
       // });
@@ -145,30 +156,33 @@ const MovingFish: React.FC<MovingFishProps> = ({ src, initialPosition }) => {
   );
 };
 
-export const FishAnimation = () => {
-  const isBig = useMediaQuery(
-    {
-      showIfBiggerThan: "md",
-    },
-    true
-  );
+type InitialFish = {
+  initialPosition: Coordinates;
+  src: string;
+};
 
-  const [fishies, setFishies] = useState<Coordinates[]>([]);
+function generateNFish(n: number) {
+  return Array.from({ length: n }).map((_, idx) => ({
+    initialPosition: randomPosition(),
+    src: fishGifs[idx % fishGifs.length] ?? "",
+  }));
+}
+
+export const FishAnimation = () => {
+  const [fishies, setFishies] = useState<InitialFish[]>([]);
+
   useEffect(() => {
-    setFishies(Array.from({ length: isBig ? 32 : 16 }));
-    return () => {
-      setFishies([]);
-    };
-  }, [isBig]);
+    setFishies(generateNFish(mobile() ? 8 : 24));
+  }, []);
 
   return (
     <div className="pointer-events-none fixed left-0 top-0 h-screen w-full">
-      {fishies.map((_, i) => {
+      {fishies.map((fish, i) => {
         return (
           <MovingFish
             key={i}
-            src={fishGifs[i % fishGifs.length] ?? ""}
-            initialPosition={randomPosition()}
+            src={fish.src}
+            initialPosition={fish.initialPosition}
           />
         );
       })}
