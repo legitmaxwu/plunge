@@ -286,7 +286,7 @@ function RenderQuestion(props: RenderQuestionProps) {
             </div>
           )}
         </div>
-        <TextSelectionMenu parentRef={mdRef} />
+        {/* <TextSelectionMenu parentRef={mdRef} /> */}
       </div>
     </Fade>
   );
