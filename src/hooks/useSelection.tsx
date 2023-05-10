@@ -25,15 +25,37 @@ export function useSelection(
       }, 250);
     };
 
+    let touchTimeout: NodeJS.Timeout;
+    const handleTouchSelection = () => {
+      if (touchTimeout) {
+        clearTimeout(touchTimeout);
+      }
+
+      touchTimeout = setTimeout(() => {
+        const selection = window.getSelection();
+        const rect = selection?.getRangeAt(0).getBoundingClientRect();
+
+        const selectedText = selection?.toString();
+
+        if (selectedText && rect) {
+          const { x, y } = rect;
+          callback(selectedText, x, y);
+        }
+      }, 250);
+    };
+
     const targetElement = targetRef.current;
 
     if (targetElement) {
       targetElement.addEventListener("mouseup", handleSelection);
+      // mobile
+      targetElement.addEventListener("touchend", handleTouchSelection);
     }
 
     return () => {
       if (targetElement) {
         targetElement.removeEventListener("mouseup", handleSelection);
+        targetElement.removeEventListener("touchend", handleTouchSelection);
       }
     };
   }, [callback, targetRef]);

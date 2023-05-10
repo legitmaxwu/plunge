@@ -6,6 +6,13 @@ import {
 } from "./base/HoverCard";
 import nlp from "compromise";
 import { type ReactNode } from "react";
+import isMobile from "is-mobile";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./base/Dropdown";
 
 export function getVerbForm(noun: string) {
   const doc = nlp(noun);
@@ -19,6 +26,7 @@ export function getVerbForm(noun: string) {
   }
 }
 
+const mobile = isMobile();
 export interface RenderLinkProps {
   href?: string;
   children: ReactNode & ReactNode[];
@@ -58,55 +66,103 @@ export function RenderLink(props: RenderLinkProps) {
         {subject}
       </span>
     );
+  } else {
+    return (
+      <div className="inline">
+        {mobile ? (
+          <>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <span
+                  className={clsx(
+                    className,
+                    "inline cursor-pointer font-semibold text-cyan-800 underline "
+                  )}
+                >
+                  {children}
+                </span>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="flex flex-col py-1" align="start">
+                <DropdownMenuItem
+                  onClick={() => {
+                    window.dispatchEvent(
+                      new CustomEvent(plungeEventId, {
+                        detail: {
+                          newQuestion: whatQuestion,
+                        },
+                      })
+                    );
+                  }}
+                >
+                  {whatQuestion}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    window.dispatchEvent(
+                      new CustomEvent(plungeEventId, {
+                        detail: {
+                          newQuestion: processedHref,
+                        },
+                      })
+                    );
+                  }}
+                >
+                  {processedHref}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        ) : (
+          <>
+            <HoverCard openDelay={0}>
+              <HoverCardTrigger>
+                <span
+                  // {...props}
+                  // href={href}
+                  // target={isExternal ? "_blank" : undefined}
+                  // rel={isExternal ? "noopener noreferrer" : undefined}
+                  className={clsx(
+                    className,
+                    "inline cursor-pointer font-semibold text-cyan-800 underline "
+                  )}
+                >
+                  {children}
+                </span>
+              </HoverCardTrigger>
+              <HoverCardContent className="flex flex-col py-1" align="start">
+                <button
+                  className="px-3 py-1 text-left text-sm hover:bg-gray-100"
+                  onClick={() => {
+                    window.dispatchEvent(
+                      new CustomEvent(plungeEventId, {
+                        detail: {
+                          newQuestion: whatQuestion,
+                        },
+                      })
+                    );
+                  }}
+                >
+                  {whatQuestion}
+                </button>
+                <button
+                  className="px-3 py-1 text-left text-sm hover:bg-gray-100"
+                  onClick={() => {
+                    window.dispatchEvent(
+                      new CustomEvent(plungeEventId, {
+                        detail: {
+                          newQuestion: processedHref,
+                        },
+                      })
+                    );
+                  }}
+                >
+                  {processedHref}
+                </button>
+              </HoverCardContent>
+            </HoverCard>
+          </>
+        )}
+      </div>
+    );
   }
-  return (
-    <div className="inline">
-      <HoverCard openDelay={0}>
-        <HoverCardTrigger>
-          <span
-            // {...props}
-            // href={href}
-            // target={isExternal ? "_blank" : undefined}
-            // rel={isExternal ? "noopener noreferrer" : undefined}
-            className={clsx(
-              className,
-              "inline cursor-pointer font-semibold text-cyan-800 underline "
-            )}
-          >
-            {children}
-          </span>
-        </HoverCardTrigger>
-        <HoverCardContent className="flex flex-col py-1" align="start">
-          <button
-            className="px-3 py-1 text-left text-sm hover:bg-gray-100"
-            onClick={() => {
-              window.dispatchEvent(
-                new CustomEvent(plungeEventId, {
-                  detail: {
-                    newQuestion: whatQuestion,
-                  },
-                })
-              );
-            }}
-          >
-            {whatQuestion}
-          </button>
-          <button
-            className="px-3 py-1 text-left text-sm hover:bg-gray-100"
-            onClick={() => {
-              window.dispatchEvent(
-                new CustomEvent(plungeEventId, {
-                  detail: {
-                    newQuestion: processedHref,
-                  },
-                })
-              );
-            }}
-          >
-            {processedHref}
-          </button>
-        </HoverCardContent>
-      </HoverCard>
-    </div>
-  );
 }
