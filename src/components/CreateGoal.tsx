@@ -1,23 +1,20 @@
 import { useMachine } from "@xstate/react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/router";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { assign, createMachine } from "xstate";
 import { Button } from "./base/Button";
 import { Textarea } from "./base/Textarea";
-import yaml from "js-yaml";
 import { api } from "../utils/api";
 import { handleError } from "../utils/handleError";
 import { RenderAIOptions } from "./RenderAIOptions";
 import { useQueryParam } from "../hooks/useQueryParam";
 import { useStackStore } from "../utils/zustand/stackStore";
 import { useAuth } from "@clerk/nextjs";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { Fade } from "./animate/Fade";
 import { useChatCompletion } from "../hooks/useChatCompletion";
 import { useAtom } from "jotai";
 import { loadingAiAtom } from "../utils/jotai";
-import toast from "react-hot-toast";
 
 interface TypingAnimationProps {
   text: string;
@@ -60,7 +57,7 @@ function StepCard(props: StepCardProps) {
       transition={{ duration: 0.3 }}
       className="w-full max-w-lg"
     >
-      <button
+      {/* <button
         className="mb-0.5 flex w-full items-center gap-0.5 text-black/40 transition hover:text-black/20"
         onClick={() => {
           router.push("/").catch(handleError);
@@ -68,8 +65,8 @@ function StepCard(props: StepCardProps) {
       >
         <ArrowLeftIcon className="h-3 w-3 cursor-pointer " />
         Home
-      </button>
-      <div className="flex h-full w-full flex-col items-center rounded-md border border-gray-400 bg-white/20 p-12 pb-4 shadow-md">
+      </button> */}
+      <div className="flex h-full w-full flex-col items-center rounded-md border border-gray-400 bg-white/20 p-12 shadow-md">
         {children}
       </div>
     </motion.div>
@@ -168,6 +165,15 @@ function InitGoal(props: InitGoalProps) {
         placeholder="how do fish breathe underwater?"
         value={goal}
         onValueChange={setGoal}
+        onKeyPress={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            const processedGoal = goal.trim();
+            if (processedGoal) {
+              onComplete(processedGoal);
+            }
+          }
+        }}
       />
       <div className="h-8"></div>
       <div className="flex items-center gap-2">
@@ -232,18 +238,11 @@ function RefineGoal(props: RefineGoalProps) {
         comments,
         currentOptions,
       });
-
-      return () => {
-        cancel();
-      };
     },
-    [cancel, initiateChatCompletion]
+    [initiateChatCompletion]
   );
   useEffect(() => {
-    const cancel = getSuggestions(currentGoal);
-    return () => {
-      cancel();
-    };
+    getSuggestions(currentGoal);
   }, [currentGoal, getSuggestions]);
 
   return (

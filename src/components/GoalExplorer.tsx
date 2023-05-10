@@ -97,9 +97,9 @@ function RenderGoalItem(props: RenderGoalItemProps) {
           setNewGoal("");
           setAdding(false);
           if (res[0] && plungeId) {
-            router
-              .push(`/plunge/${plungeId}/question/${res[0]?.goalId}`)
-              .catch(handleError);
+            // router
+            //   .push(`/plunge/${plungeId}/question/${res[0]?.goalId}`)
+            //   .catch(handleError);
           }
         }),
         {

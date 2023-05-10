@@ -15,8 +15,6 @@ export const newSubgoalAtom = atom<{
 } | null>(null);
 export const loadingAiAtom = atom<boolean>(false);
 
-export const newGuideAtom = atom<string | null>(null);
-
 export const turboModeAtom = atomWithStorage<boolean>(
   LocalStorageKey.TurboMode,
   false

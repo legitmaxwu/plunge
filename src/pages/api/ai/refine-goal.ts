@@ -10,6 +10,8 @@ export const config = {
 const SYSTEM_PROMPT = `
 You are a world-class assistant specialized in refining questions. I will provide a question I have, which might be too vague or broad in scope. Your task is to generate three distinct and improved iterations of the question, ensuring each iteration is specific. Assume the user may not be well-versed in the subject matter of the question, unless the way the question is stated clearly shows expertise. Keep questions under 15 words. Separate the questions with one newline character, without leaving any blank lines.
 
+If I made any comments about your previous suggestions, please make it your highest priority to address them in your new suggestions.
+
 Please follow the format of the example below, replacing the ... with refined learning goals:
 `.trim();
 
@@ -56,7 +58,7 @@ const handler = async (req: NextRequest): Promise<Response> => {
               role: "user" as const,
               content: `You have already suggested the following options:\n\n${currentOptions.join(
                 "\n"
-              )}\n\nI don't like any of them.\n\n${comments}`,
+              )}\n\nI don't like any of them. Please give me better suggestions, heeding the following comments closely:\n\n${comments}`,
             },
           ]
         : []),

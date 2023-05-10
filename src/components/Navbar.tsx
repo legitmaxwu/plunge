@@ -210,7 +210,7 @@ export function Navbar() {
                 <div className="flex cursor-pointer select-none items-center gap-2.5">
                   <div className="whitespace-nowrap">{user?.firstName}</div>
                   <div className="flex items-center gap-1">
-                    <Avatar className="h-7 w-7 border border-blue-950">
+                    <Avatar className="h-8 w-8 border border-blue-950">
                       <AvatarImage src={user?.profileImageUrl} />
                       <AvatarFallback>
                         {user?.firstName?.[0]?.toUpperCase()}

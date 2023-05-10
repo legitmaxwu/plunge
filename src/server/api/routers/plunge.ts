@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { authenticatedProcedure, createTRPCRouter } from "~/server/api/trpc";
-import { plunges, questions } from "../../db/schema";
-import { and, eq } from "drizzle-orm";
+import { links, plunges, questions } from "../../db/schema";
+import { and, eq, inArray } from "drizzle-orm";
 import { createId } from "../../lib/id";
 
 export const plungeRouter = createTRPCRouter({
@@ -81,5 +81,66 @@ export const plungeRouter = createTRPCRouter({
           goalId: newQuestionId,
         };
       });
+    }),
+
+  delete: authenticatedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.auth.userId;
+
+      const plungeToDeleteRes = await ctx.db
+
+        .select()
+        .from(plunges)
+        .where(and(eq(plunges.id, input.id), eq(plunges.userId, userId)))
+        .limit(1);
+
+      if (!plungeToDeleteRes[0]) {
+        throw new Error("Plunge not found");
+      }
+      const plungeToDelete = plungeToDeleteRes[0];
+      const topQuestionId = plungeToDelete.questionId;
+
+      async function getAllChildrenIds(questionId: string): Promise<string[]> {
+        const childrenLinks = await ctx.db
+          .select()
+          .from(links)
+          .where(eq(links.parentId, questionId));
+
+        if (childrenLinks.length === 0) {
+          return [];
+        } else {
+          return [
+            ...childrenLinks.map((link) => link.childId),
+            ...(
+              await Promise.all(
+                childrenLinks.map((link) => getAllChildrenIds(link.childId))
+              )
+            ).flat(),
+          ];
+        }
+      }
+
+      const idsToDelete = [
+        topQuestionId,
+        ...(await getAllChildrenIds(topQuestionId)),
+      ];
+
+      await ctx.db.transaction(async (tx) => {
+        // Delete all questions and links
+        await tx.delete(questions).where(inArray(questions.id, idsToDelete));
+        await tx.delete(links).where(inArray(links.childId, idsToDelete));
+
+        // Delete the plunge
+        await ctx.db
+          .delete(plunges)
+          .where(and(eq(plunges.id, input.id), eq(plunges.userId, userId)));
+      });
+
+      return input.id;
     }),
 });

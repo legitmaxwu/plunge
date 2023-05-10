@@ -33,11 +33,7 @@ import ReactMarkdown, {
 import remarkGfm from "remark-gfm";
 import { useAtom, type PrimitiveAtom } from "jotai";
 import { useChatCompletion } from "../../../../hooks/useChatCompletion";
-import {
-  newGuideAtom,
-  loadingAiAtom,
-  allQuestionsAtom,
-} from "../../../../utils/jotai";
+import { loadingAiAtom, allQuestionsAtom } from "../../../../utils/jotai";
 import { Sparkles } from "../../../../components/Sparkles";
 import { TextSelectionMenu } from "../../../../components/TextSelectionMenu";
 import { Fade } from "../../../../components/animate/Fade";
@@ -111,8 +107,6 @@ function RenderQuestion(props: RenderQuestionProps) {
   });
 
   const [isEditing, setIsEditing] = useState(false);
-
-  const [newGuide] = useAtom(newGuideAtom);
 
   const reactMdOptions: ReactMarkdownOptions["components"] = useMemo(
     () => ({
@@ -256,8 +250,7 @@ function RenderQuestion(props: RenderQuestionProps) {
         <div
           className={clsx({
             "rounded-sm shadow-sm": true,
-            "bg-white/30": !newGuide,
-            "bg-blue-50": !!newGuide,
+            "bg-white/30": true,
           })}
         >
           {isEditing ? (
@@ -287,9 +280,8 @@ function RenderQuestion(props: RenderQuestionProps) {
                 remarkPlugins={[remarkGfm]}
                 components={reactMdOptions}
               >
-                {newGuide ??
-                  (question.guideMarkdown ||
-                    "Click the sparkle icon to generate an article!")}
+                {question.guideMarkdown ||
+                  "Click the sparkle icon to generate an article!"}
               </ReactMarkdown>
             </div>
           )}
@@ -427,7 +419,7 @@ function AddQuestion(props: AddQuestionProps) {
         ) : !activated ? (
           <IconButton
             icon={PlusIcon}
-            className="p-1.5"
+            className="p-1.5 text-black/50 transition hover:text-black"
             onClick={() => {
               // handleNewQuestion("");
               setActivated(true);
@@ -552,7 +544,7 @@ const GoalPage: NextPage = () => {
 
         <ScrollArea className="flex h-full w-full flex-1 flex-col items-center">
           <div className="mx-auto flex w-full max-w-xl flex-col items-center px-4 sm:px-8">
-            <div className="flex flex-col">
+            <div className="flex w-full flex-col">
               {questionAtoms?.map((questionAtom, idx) => {
                 const isLast = idx === questionAtoms.length - 1;
 
@@ -587,7 +579,7 @@ const GoalPage: NextPage = () => {
                 return (
                   <div
                     className={cn({
-                      "flex flex-col gap-2": true,
+                      "flex w-full flex-col gap-2": true,
                       "pb-24": isLast,
                     })}
                     key={idx}
