@@ -73,38 +73,7 @@ const MyApp: AppType = (props) => {
       </Head>
       <TooltipProvider delayDuration={0}>
         <ClerkProvider {...pageProps}>
-          {!show ? (
-            <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-gray-200 via-sky-300 to-blue-300 px-4">
-              <div className="text-center">
-                <h1 className="text-6xl font-bold text-blue-950">Plunge 🤿</h1>
-                <div className="text-2xl text-gray-600">
-                  explore your curiosity {":)"}
-                </div>
-
-                <div className="h-8"></div>
-                <div className="relative aspect-video">
-                  <div className="h-full w-full animate-pulse rounded-sm bg-black/10"></div>
-                  <ReactPlayer
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                    }}
-                    controls={true}
-                    width="100%"
-                    height="100%"
-                    url="https://www.youtube.com/watch?v=UWUu5KI7_U4"
-                  />
-                </div>
-                <div className="h-8"></div>
-                <div className="max-w-sm">
-                  Welcome! Please use a device with a larger screen to access
-                  this site. Thanks!
-                </div>
-                <div className="h-16"></div>
-              </div>
-            </div>
-          ) : isPublicPage ? (
+          {isPublicPage ? (
             <RenderComponent {...props} />
           ) : (
             <>

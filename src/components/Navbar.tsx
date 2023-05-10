@@ -116,16 +116,16 @@ export function Navbar() {
 
   return (
     <div className="flex h-14 w-full items-center justify-center bg-blue-600/5">
-      <div className="w-full max-w-xl px-2 py-2 md:px-8">
+      <div className="w-full max-w-xl px-4 py-2 sm:px-8">
         <div className="flex justify-between">
-          <div className="flex items-center gap-2 md:gap-8">
+          <div className="flex items-center gap-6 sm:gap-8">
             <div className="flex select-none items-center gap-1.5">
               <div className="text-2xl">🤿</div>
               <div className="mb-0.5 text-lg font-bold text-blue-950">
                 Plunge
               </div>
             </div>
-            <div className="flex select-none items-center gap-2 md:gap-6">
+            <div className="flex select-none items-center gap-2 sm:gap-6">
               {notAtRoot && (
                 <button
                   className="flex items-center gap-1 hover:text-gray-600"

@@ -222,7 +222,7 @@ function RenderQuestion(props: RenderQuestionProps) {
             <IconButton
               icon={TrashIcon}
               className="ml-1 text-gray-500"
-              tooltipText="Delete Question"
+              tooltipText="Delete"
               onClick={() => {
                 const confirm = window.confirm(
                   "Are you sure you want to delete this question? All subquestions will be deleted as well."
@@ -551,7 +551,7 @@ const GoalPage: NextPage = () => {
         <Navbar />
 
         <ScrollArea className="flex h-full w-full flex-1 flex-col items-center">
-          <div className="mx-auto flex w-full max-w-xl flex-col items-center px-2 md:px-8">
+          <div className="mx-auto flex w-full max-w-xl flex-col items-center px-4 sm:px-8">
             <div className="flex flex-col">
               {questionAtoms?.map((questionAtom, idx) => {
                 const isLast = idx === questionAtoms.length - 1;
