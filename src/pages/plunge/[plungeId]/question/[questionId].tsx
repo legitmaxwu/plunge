@@ -261,22 +261,24 @@ function RenderQuestion(props: RenderQuestionProps) {
           })}
         >
           {isEditing ? (
-            <ReactTextareaAutosize
-              placeholder="Type here..."
-              className="w-full resize-none rounded-sm border border-transparent bg-transparent p-4 font-mono transition focus:border-gray-700 focus:outline-none"
-              value={question.guideMarkdown ?? ""}
-              onChange={(e) => {
-                setQuestion((question) => {
-                  if (!question) return question;
-                  return {
-                    ...question,
-                    guideMarkdown: e.target.value,
-                  };
-                });
-              }}
-            />
+            <div className="shrink-0 border border-gray-400 px-4 py-3 transition focus-within:border-gray-700">
+              <ReactTextareaAutosize
+                placeholder="Type here..."
+                className="w-full resize-none overflow-hidden rounded-sm bg-transparent font-mono focus:outline-none"
+                value={question.guideMarkdown ?? ""}
+                onChange={(e) => {
+                  setQuestion((question) => {
+                    if (!question) return question;
+                    return {
+                      ...question,
+                      guideMarkdown: e.target.value,
+                    };
+                  });
+                }}
+              />
+            </div>
           ) : (
-            <div className="px-4 py-3" ref={mdRef}>
+            <div className="border-transparent px-4 py-3" ref={mdRef}>
               <ReactMarkdown
                 className={clsx({
                   prose: true,
