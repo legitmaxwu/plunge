@@ -176,7 +176,7 @@ export const FishAnimation = () => {
   }, []);
 
   return (
-    <div className="pointer-events-none fixed left-0 top-0 h-screen w-full">
+    <div className="pointer-events-none fixed left-0 top-0 h-[calc(100dvh)] w-full">
       {fishies.map((fish, i) => {
         return (
           <MovingFish

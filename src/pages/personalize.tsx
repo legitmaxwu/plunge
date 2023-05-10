@@ -66,7 +66,7 @@ const Learn: NextPage = () => {
   }, [aiStyle, user]);
 
   return (
-    <div className="flex h-screen flex-col items-center bg-gradient-to-r from-sky-200 to-blue-200">
+    <div className="flex h-[calc(100dvh)] flex-col items-center bg-gradient-to-r from-sky-200 to-blue-200">
       <Navbar />
       <SidePadding className="justify-between">
         <div className="h-16"></div>

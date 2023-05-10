@@ -7,7 +7,7 @@ import { Navbar } from "../../components/Navbar";
 
 const Create: NextPage = () => {
   return (
-    <div className="flex h-screen flex-col bg-gradient-to-r from-sky-200 to-blue-200">
+    <div className="flex h-[calc(100dvh)] flex-col bg-gradient-to-r from-sky-200 to-blue-200">
       <Navbar />
       <div className="flex h-full flex-1 flex-col items-center justify-center px-4">
         <CreateGoal />

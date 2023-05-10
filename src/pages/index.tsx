@@ -41,7 +41,7 @@ function HomePage() {
   const nothingCreated = plunges?.length === 0;
 
   return (
-    <div className="flex h-screen flex-col items-center bg-gradient-to-r from-sky-200 to-blue-200">
+    <div className="flex h-[calc(100dvh)] flex-col items-center bg-gradient-to-r from-sky-200 to-blue-200">
       <Navbar />
       <div className="h-16"></div>
       <div className="w-full max-w-xl px-4 sm:px-8">

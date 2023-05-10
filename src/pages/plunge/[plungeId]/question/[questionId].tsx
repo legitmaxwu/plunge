@@ -410,7 +410,7 @@ function AddQuestion(props: AddQuestionProps) {
     <div className="mt-4 flex flex-col items-center" ref={ref}>
       <div className="flex w-full flex-col items-center">
         {isLoading ? (
-          <div className="flex min-h-screen w-full flex-col items-center text-gray-400">
+          <div className="flex min-h-[calc(100dvh)] w-full flex-col items-center text-gray-400">
             <div className="flex items-center gap-2">
               <Spinner />
               <div>Loading...</div>
@@ -539,7 +539,7 @@ const GoalPage: NextPage = () => {
         <title>Plunge - {plunge?.question.title}</title>
       </Head>
 
-      <div className="flex h-screen flex-col items-center bg-gradient-to-r from-sky-200 to-blue-200">
+      <div className="flex h-[calc(100dvh)] flex-col items-center bg-gradient-to-r from-sky-200 to-blue-200">
         <Navbar />
 
         <ScrollArea className="flex h-full w-full flex-1 flex-col items-center">

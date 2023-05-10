@@ -16,7 +16,7 @@ const Learn: NextPage = () => {
   const router = useRouter();
 
   return (
-    <div className="h-screen bg-gradient-to-r from-pink-200 to-sky-200">
+    <div className="h-[calc(100dvh)] bg-gradient-to-r from-pink-200 to-sky-200">
       <SidePadding>
         <Accordion type="single" collapsible>
           <AccordionItem value="item-1">

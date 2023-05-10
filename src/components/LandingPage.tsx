@@ -18,8 +18,8 @@ const LandingPage = () => {
   const { signIn } = useSignIn();
   const clerk = useClerk();
   return (
-    <div className="flex h-screen flex-col items-center bg-gradient-to-r from-gray-200 via-sky-300 to-blue-300">
-      <div className="flex h-full flex-col items-center justify-center text-center">
+    <div className="flex h-[calc(100dvh)] flex-col items-center bg-gradient-to-r from-gray-200 via-sky-300 to-blue-300">
+      <div className="flex h-full flex-col items-center justify-center px-4 text-center">
         <h1 className="text-6xl font-bold text-blue-950">Plunge 🤿</h1>
         <p className="text-2xl text-gray-600">explore your curiosity {":)"}</p>
         <div className="h-12"></div>
