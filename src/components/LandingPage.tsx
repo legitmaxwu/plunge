@@ -38,7 +38,7 @@ const LandingPage = () => {
           <img src="/google.png" className="h-6 w-6" alt="google logo" />
           Sign in with Google
         </button>
-        <div className="h-16"></div>
+        {/* <div className="h-16"></div>
         <div className="relative z-50 aspect-video h-96 xl:h-120 2xl:h-160">
           <div className="h-full w-full animate-pulse rounded-sm bg-black/10"></div>
           <ReactPlayer
@@ -52,9 +52,9 @@ const LandingPage = () => {
             height="100%"
             url="https://www.youtube.com/watch?v=UWUu5KI7_U4"
           />
-        </div>
+        </div> */}
       </div>
-      <FishAnimation />
+      {/* <FishAnimation /> */}
     </div>
   );
 };

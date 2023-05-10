@@ -1,3 +1,5 @@
+// @refresh reset
+
 import { useUser, useClerk } from "@clerk/nextjs";
 import { type NextPage } from "next";
 import { useRouter } from "next/router";

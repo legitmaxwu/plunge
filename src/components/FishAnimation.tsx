@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { motion, useAnimate } from "framer-motion";
 import { handleError } from "../utils/handleError";
 import clsx from "clsx";
+import { useMediaQuery } from "../hooks/useMediaQuery";
 
 type Coordinates = { x: number; y: number };
 const fishGifs = [
@@ -145,13 +146,20 @@ const MovingFish: React.FC<MovingFishProps> = ({ src, initialPosition }) => {
 };
 
 export const FishAnimation = () => {
+  const isBig = useMediaQuery(
+    {
+      showIfBiggerThan: "md",
+    },
+    true
+  );
+
   const [fishies, setFishies] = useState<Coordinates[]>([]);
   useEffect(() => {
-    setFishies(Array.from({ length: 32 }));
+    setFishies(Array.from({ length: isBig ? 32 : 16 }));
     return () => {
       setFishies([]);
     };
-  }, []);
+  }, [isBig]);
 
   return (
     <div className="pointer-events-none fixed left-0 top-0 h-screen w-full">
