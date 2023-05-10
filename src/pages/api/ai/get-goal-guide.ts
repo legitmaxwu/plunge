@@ -21,7 +21,7 @@ Write in a fun and approachable style, while remaining informative and concise. 
 
 For sections 1-3 ONLY, whenever there is a key term or phrase, or anything that's interesting or potentially unknown to the reader, highlight it using a hyperlink! Instead of including a web link, use the following format: [term](Follow_up_question_but_replace_spaces_with_underscores). Avoid follow-up questions similar to "What is {term}?". Pose creative questions that a user might not think to ask, but would be interested in knowing the answer to given the question they asked. 
 
-Every section should have highlighed terms!
+MAKE SURE YOUR RESPONSE HAS AT LEAST 3 HIGHLIGHTED TERMS, ON TOP OF THE 3 FOLLOW-UP QUESTIONS IN SECTION 4.
 
 Do not include a top-level heading or title in your answer. Assume that the guide you generated will be presented under the question provided.
 `.trim();
