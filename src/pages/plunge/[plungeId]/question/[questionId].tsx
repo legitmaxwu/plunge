@@ -18,6 +18,7 @@ import {
   PencilSquareIcon,
   PlusIcon,
   SparklesIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
 import { PencilSquareIcon as SolidPencilSquareIcon } from "@heroicons/react/24/solid";
 import { IconButton } from "../../../../components/IconButton";
@@ -52,17 +53,20 @@ import { handleError } from "../../../../utils/handleError";
 import { Spinner } from "../../../../components/base/Button";
 import { usePrevious } from "../../../../hooks/usePrevious";
 import { useClickOutside } from "@mantine/hooks";
+import { toast } from "react-hot-toast";
 
 interface RenderQuestionProps {
   questionAtom: PrimitiveAtom<RouterOutputs["question"]["get"]>;
   isFirst: boolean;
   isLast: boolean;
+  onDelete: (deletedId: string) => void;
 }
 
 function RenderQuestion(props: RenderQuestionProps) {
-  const { questionAtom, isFirst, isLast } = props;
+  const { questionAtom, isFirst, isLast, onDelete } = props;
 
-  const { mutateAsync, isLoading } = api.question.update.useMutation({});
+  const { mutateAsync: updateQuestion, isLoading } =
+    api.question.update.useMutation({});
   const [question, setQuestion] = useAutoSaveAtom<
     RouterOutputs["question"]["get"]
   >(
@@ -70,16 +74,23 @@ function RenderQuestion(props: RenderQuestionProps) {
       () => ({
         atom: questionAtom,
         saveFunction: async (data) => {
-          return mutateAsync({
+          return updateQuestion({
             id: data.id,
             title: data.title ?? undefined,
             guideMarkdown: data.guideMarkdown ?? undefined,
           });
         },
       }),
-      [mutateAsync, questionAtom]
+      [updateQuestion, questionAtom]
     )
   );
+
+  const { mutateAsync: deleteQuestion } =
+    api.question.deleteIncludingChildren.useMutation({
+      onSuccess(res) {
+        onDelete(res);
+      },
+    });
 
   const [loadingAi, setLoadingAi] = useAtom(loadingAiAtom);
   const handleNewToken = useCallback(
@@ -206,6 +217,33 @@ function RenderQuestion(props: RenderQuestionProps) {
               setIsEditing((prev) => !prev);
             }}
           />
+
+          {!isFirst && (
+            <IconButton
+              icon={TrashIcon}
+              className="ml-1 text-gray-500"
+              tooltipText="Delete Question"
+              onClick={() => {
+                const confirm = window.confirm(
+                  "Are you sure you want to delete this question? All subquestions will be deleted as well."
+                );
+                if (!confirm) return;
+
+                toast
+                  .promise(
+                    deleteQuestion({
+                      id: question.id,
+                    }),
+                    {
+                      loading: "Deleting...",
+                      success: "Deleted!",
+                      error: "Failed to delete.",
+                    }
+                  )
+                  .catch(handleError);
+              }}
+            />
+          )}
 
           {question.guideMarkdown &&
             LocalStorage.get(LocalStorageKey.HidePromptSelectText) !== true && (
@@ -439,8 +477,8 @@ function AddQuestion(props: AddQuestionProps) {
 const GoalPage: NextPage = () => {
   const questionId = useQueryParam("questionId", "string");
   const plungeId = useQueryParam("plungeId", "string");
-
-  const [, setAllQuestions] = useAtom(allQuestionsAtom);
+  const utils = api.useContext();
+  const [allQuestions, setAllQuestions] = useAtom(allQuestionsAtom);
   api.question.getQuestionPath.useQuery(
     { topQuestionId: questionId ?? "" },
     {
@@ -463,13 +501,18 @@ const GoalPage: NextPage = () => {
     { enabled: !!plungeId }
   );
 
-  const bottomDivRef = useRef<HTMLDivElement>(null);
-  const handleScrollBottomEvent = useCallback(() => {
-    bottomDivRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }, []);
+  const scrollToQuestionIndex = useCallback(
+    (index: number) => {
+      const qId = allQuestions[index]?.id;
+      if (!qId) return;
+      const element = document.getElementById(`question-${qId}`);
+      element?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    },
+    [allQuestions]
+  );
 
   const questionAtomsLength = questionAtoms?.length ?? 0;
   const previousQuestionAtomsLength = usePrevious(questionAtomsLength);
@@ -481,20 +524,16 @@ const GoalPage: NextPage = () => {
       return;
 
     if (questionAtomsLength > previousQuestionAtomsLength) {
-      handleScrollBottomEvent();
+      scrollToQuestionIndex(previousQuestionAtomsLength);
+    } else {
+      // scrollToQuestionIndex(questionAtomsLength - 1);
     }
   }, [
-    handleScrollBottomEvent,
+    scrollToQuestionIndex,
     previousQuestionAtomsLength,
     questionAtoms,
     questionAtomsLength,
   ]);
-  // useEffect(() => {
-  //   window.addEventListener("scroll-bottom", handleScrollBottomEvent);
-  //   return () => {
-  //     window.removeEventListener("scroll-bottom", handleScrollBottomEvent);
-  //   };
-  // }, [handleScrollBottomEvent]);
 
   if (!questionId) {
     return <div>No goal id</div>;
@@ -514,6 +553,35 @@ const GoalPage: NextPage = () => {
             <div className="flex flex-col">
               {questionAtoms?.map((questionAtom, idx) => {
                 const isLast = idx === questionAtoms.length - 1;
+
+                const parentOfThisQuestion = allQuestions[idx - 1];
+                const thisQuestion = allQuestions[idx];
+
+                function handleDelete(deletedId: string) {
+                  // dispatch({
+                  //   type: "remove",
+                  //   atom: questionAtom,
+                  // });
+
+                  // Remove all questions after parent question, including parent question
+                  setAllQuestions((prev) => {
+                    if (!prev) return prev;
+                    const indexOfDeleted = prev.findIndex(
+                      (q) => q.id === deletedId
+                    );
+                    if (indexOfDeleted === -1) return prev;
+                    return prev.slice(0, indexOfDeleted);
+                  });
+
+                  if (parentOfThisQuestion?.id) {
+                    utils.link.getAllUnderQuestion
+                      .invalidate({
+                        parentQuestionId: parentOfThisQuestion.id,
+                      })
+                      .catch(handleError);
+                  }
+                }
+
                 return (
                   <div
                     className={cn({
@@ -527,12 +595,13 @@ const GoalPage: NextPage = () => {
                   >
                     <div
                       className="h-4"
-                      ref={isLast ? bottomDivRef : null}
+                      id={`question-${thisQuestion?.id ?? ""}`}
                     ></div>
                     <RenderQuestion
                       isFirst={idx === 0}
                       isLast={isLast}
                       questionAtom={questionAtom}
+                      onDelete={handleDelete}
                     />
                     <AddQuestion
                       parentQuestionAtom={questionAtom}
@@ -541,24 +610,6 @@ const GoalPage: NextPage = () => {
                   </div>
                 );
               })}
-              {/* {lastAtom && (
-              <div
-                style={{
-                  minHeight: "calc(100vh - 3.5rem - 2rem)",
-                }}
-                className="flex shrink-0 flex-col gap-8 pb-24"
-              >
-                <RenderQuestion
-                  isFirst={questionAtoms.length === 1}
-                  isLast={true}
-                  questionAtom={lastAtom}
-                />
-                <AddQuestion
-                  parentQuestionAtom={lastAtom}
-                  index={questionAtoms.length - 1}
-                />
-              </div>
-            )} */}
             </div>
           </div>
         </ScrollArea>

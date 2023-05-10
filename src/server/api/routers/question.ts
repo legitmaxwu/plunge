@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { authenticatedProcedure, createTRPCRouter } from "~/server/api/trpc";
 import { questions, links, type Question } from "../../db/schema";
@@ -134,5 +134,46 @@ export const questionRouter = createTRPCRouter({
         await tx.delete(links).where(eq(links.childId, input.id));
         await tx.delete(links).where(eq(links.parentId, input.id));
       });
+    }),
+
+  deleteIncludingChildren: authenticatedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.auth.userId;
+
+      // TODO: check if goal exists and belongs to user
+
+      async function getAllChildrenIds(questionId: string): Promise<string[]> {
+        const childrenLinks = await ctx.db
+          .select()
+          .from(links)
+          .where(eq(links.parentId, questionId));
+
+        if (childrenLinks.length === 0) {
+          return [];
+        } else {
+          return [
+            ...childrenLinks.map((link) => link.childId),
+            ...(
+              await Promise.all(
+                childrenLinks.map((link) => getAllChildrenIds(link.childId))
+              )
+            ).flat(),
+          ];
+        }
+      }
+
+      const idsToDelete = [input.id, ...(await getAllChildrenIds(input.id))];
+
+      await ctx.db.transaction(async (tx) => {
+        await tx.delete(questions).where(inArray(questions.id, idsToDelete));
+        await tx.delete(links).where(inArray(links.childId, idsToDelete));
+      });
+
+      return input.id;
     }),
 });
