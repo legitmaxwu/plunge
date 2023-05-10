@@ -6,7 +6,10 @@ import { Command as CommandPrimitive } from "cmdk";
 
 import { cn } from "../../utils";
 import { Dialog } from "./Dialog";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import {
+  MagnifyingGlassIcon,
+  QuestionMarkCircleIcon,
+} from "@heroicons/react/24/outline";
 
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
@@ -15,7 +18,7 @@ const Command = React.forwardRef<
   <CommandPrimitive
     ref={ref}
     className={cn(
-      "flex h-full w-full flex-col overflow-hidden rounded-md bg-white",
+      "flex h-full w-full flex-col overflow-hidden rounded-md bg-gradient-to-r from-blue-200 to-sky-200",
       className
     )}
     {...props}
@@ -42,11 +45,12 @@ const CommandInput = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => (
   <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
-    <MagnifyingGlassIcon className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+    {/* <QuestionMarkCircleIcon className="mr-2 h-4 w-4 shrink-0 opacity-50" /> */}
+    <span className="mr-2">?</span>
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
-        "flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50",
+        "flex h-11 w-full rounded-md bg-transparent bg-gradient-to-r from-cyan-600 via-sky-600 to-blue-700 bg-clip-text py-3 font-semibold text-transparent outline-none placeholder:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       {...props}

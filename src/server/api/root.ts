@@ -1,7 +1,7 @@
 import { createTRPCRouter } from "~/server/api/trpc";
-import { goalRouter } from "~/server/api/routers/goal";
+import { plungeRouter } from "./routers/plunge";
+import { questionRouter } from "~/server/api/routers/question";
 import { linkRouter } from "./routers/link";
-import { journeyRouter } from "./routers/journey";
 
 /**
  * This is the primary router for your server.
@@ -9,9 +9,9 @@ import { journeyRouter } from "./routers/journey";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  goal: goalRouter,
+  question: questionRouter,
   link: linkRouter,
-  journey: journeyRouter,
+  plunge: plungeRouter,
 });
 
 // export type definition of API

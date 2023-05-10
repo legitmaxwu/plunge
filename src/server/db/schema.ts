@@ -1,9 +1,6 @@
 // db.ts
-import { createId } from "@paralleldrive/cuid2";
-import { sql } from "drizzle-orm";
+import { type InferModel, sql } from "drizzle-orm";
 import {
-  boolean,
-  customType,
   mysqlEnum,
   mysqlTable,
   text,
@@ -12,9 +9,8 @@ import {
   varchar,
 } from "drizzle-orm/mysql-core";
 
-export const goals = mysqlTable("goals", {
+export const questions = mysqlTable("questions", {
   id: varchar("id", { length: 191 }).primaryKey(),
-  completed: boolean("completed").notNull().default(false),
   type: mysqlEnum("type", ["CUSTOM", "DOCUMENT"]),
   createdAt: timestamp("createdAt", { fsp: 2 })
     .notNull()
@@ -23,6 +19,8 @@ export const goals = mysqlTable("goals", {
   title: text("title").notNull(),
   guideMarkdown: text("guideMarkdown"),
 });
+
+export type Question = InferModel<typeof questions>;
 
 export const links = mysqlTable(
   "links",
@@ -51,17 +49,20 @@ export const links = mysqlTable(
   })
 );
 
-export const journeys = mysqlTable(
-  "journeys",
+export const plunges = mysqlTable(
+  "plunges",
   {
     id: varchar("id", { length: 191 }).primaryKey(),
     createdAt: timestamp("createdAt", { fsp: 2 })
       .notNull()
       .default(sql`(now(2))`),
-    goalId: varchar("goalId", { length: 191 }).notNull(),
+    questionId: varchar("questionId", { length: 191 }).notNull(),
     userId: varchar("userId", { length: 191 }).notNull(),
   },
   (journeys) => ({
-    goalUserId: uniqueIndex("goal_userId").on(journeys.goalId, journeys.userId),
+    questionIdUserId: uniqueIndex("questionId_userId").on(
+      journeys.questionId,
+      journeys.userId
+    ),
   })
 );

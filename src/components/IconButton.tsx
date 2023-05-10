@@ -37,10 +37,8 @@ export function IconButton(props: IconButtonProps) {
   if (tooltipText) {
     return (
       <Tooltip>
-        <TooltipTrigger>
-          <button {...rest} className={styles} onClick={onClick}>
-            <Icon className="h-full w-full" />
-          </button>
+        <TooltipTrigger onClick={onClick} className={styles} {...rest}>
+          <Icon className="h-full w-full" />
         </TooltipTrigger>
         <TooltipContent>
           <p

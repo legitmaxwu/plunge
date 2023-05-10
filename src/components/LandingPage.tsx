@@ -1,3 +1,5 @@
+// @refresh reset
+
 /* eslint-disable @next/next/no-img-element */
 import React from "react";
 import Head from "next/head";
@@ -52,7 +54,7 @@ const LandingPage = () => {
           />
         </div>
       </div>
-      {/* <FishAnimation /> */}
+      <FishAnimation />
     </div>
   );
 };

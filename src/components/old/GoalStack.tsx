@@ -5,11 +5,11 @@ import { useAtom } from "jotai";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
-import { useQueryParam } from "../hooks/useQueryParam";
-import { api } from "../utils/api";
-import { handleError } from "../utils/handleError";
-import { goalAtom } from "../utils/jotai";
-import { useStackStore } from "../utils/zustand/stackStore";
+import { useQueryParam } from "../../hooks/useQueryParam";
+import { api } from "../../utils/api";
+import { handleError } from "../../utils/handleError";
+import { goalAtom } from "../../utils/jotai";
+import { useStackStore } from "../../utils/zustand/stackStore";
 
 interface RenderGoalProps {
   goalId: string;
@@ -24,7 +24,7 @@ function RenderGoal(props: RenderGoalProps) {
 
   const [localGoal] = useAtom(goalAtom);
 
-  const { data: remoteGoal } = api.goal.get.useQuery(
+  const { data: remoteGoal } = api.question.get.useQuery(
     { id: goalId },
     {
       enabled: localGoal?.id !== goalId,
@@ -59,7 +59,7 @@ function RenderGoal(props: RenderGoalProps) {
         className={styles}
         onClick={() => {
           highlight(goal.id);
-          router.push(`/goal/${goal.id}`).catch(handleError);
+          router.push(`/question/${goal.id}`).catch(handleError);
         }}
       >
         {goal.title}

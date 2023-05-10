@@ -2,31 +2,36 @@ import { z } from "zod";
 import { authenticatedProcedure, createTRPCRouter } from "~/server/api/trpc";
 import { getLexoRankIndices } from "../../lib/lexoRank";
 import { and, asc, desc, eq } from "drizzle-orm";
-import { links, goals } from "../../db/schema";
+import { type Question, links, questions } from "../../db/schema";
 import { createId } from "../../lib/id";
 
 export const linkRouter = createTRPCRouter({
-  getAllUnderGoal: authenticatedProcedure
+  getAllUnderQuestion: authenticatedProcedure
     .input(
       z.object({
-        parentGoalId: z.string(),
+        parentQuestionId: z.string(),
       })
     )
     .query(async ({ ctx, input }) => {
-      const { parentGoalId } = input;
+      const { parentQuestionId } = input;
       const userId = ctx.auth.userId;
       const results = await ctx.db
         .select()
         .from(links)
-        .leftJoin(goals, eq(links.parentId, goals.id))
-        .where(and(eq(links.parentId, parentGoalId), eq(goals.userId, userId)))
+        .leftJoin(questions, eq(links.childId, questions.id))
+        .where(
+          and(
+            eq(links.parentId, parentQuestionId),
+            eq(questions.userId, userId)
+          )
+        )
         .orderBy(asc(links.lexoRankIndex));
 
       return results.map((row) => {
         return {
           ...row.links,
-          goal: {
-            ...row.goals,
+          questions: {
+            ...row.questions,
           },
         };
       });
@@ -52,19 +57,25 @@ export const linkRouter = createTRPCRouter({
   createChildren: authenticatedProcedure
     .input(
       z.object({
-        parentGoalId: z.string(),
-        goalTitles: z.array(z.string()),
+        parentQuestionId: z.string(),
+        questionTitles: z.array(z.string()),
       })
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.auth.userId;
-      const { parentGoalId, goalTitles } = input;
+      const { parentQuestionId: parentGoalId, questionTitles: goalTitles } =
+        input;
 
       const goalsRet = await ctx.db
         .select()
-        .from(goals)
-        .where(and(eq(goals.id, input.parentGoalId), eq(goals.userId, userId)))
-        .leftJoin(links, eq(goals.id, links.parentId))
+        .from(questions)
+        .where(
+          and(
+            eq(questions.id, input.parentQuestionId),
+            eq(questions.userId, userId)
+          )
+        )
+        .leftJoin(links, eq(questions.id, links.parentId))
         .orderBy(desc(links.lexoRankIndex))
         .limit(1);
 
@@ -78,31 +89,50 @@ export const linkRouter = createTRPCRouter({
         goalTitles.length
       );
 
-      const promises = goalTitles.map((title, index) => {
-        return ctx.db.transaction(async (tx) => {
-          const newGoalId = createId();
-          const newLinkId = createId();
+      const promises = Promise.all(
+        goalTitles.map(async (title, index) => {
+          const ids = await ctx.db.transaction(async (tx) => {
+            const newQuestionId = createId();
+            const newLinkId = createId();
 
-          await tx.insert(goals).values({
-            id: newGoalId,
-            title,
-            userId,
-          });
+            await tx.insert(questions).values({
+              id: newQuestionId,
+              title,
+              userId,
+            });
 
-          await tx.insert(links).values({
-            id: newLinkId,
-            lexoRankIndex: lexoRankIndices[index] ?? "",
-            parentId: parentGoalId,
-            childId: newGoalId,
+            await tx.insert(links).values({
+              id: newLinkId,
+              lexoRankIndex: lexoRankIndices[index] ?? "",
+              parentId: parentGoalId,
+              childId: newQuestionId,
+            });
+
+            return {
+              linkId: newLinkId,
+              goalId: newQuestionId,
+            };
           });
+          const { linkId, goalId } = ids;
+
+          const questionsRet = await ctx.db
+            .select()
+            .from(questions)
+            .where(eq(questions.id, goalId))
+            .limit(1);
+
+          const question = questionsRet[0];
+          if (!question) {
+            throw new Error("question not found");
+          }
 
           return {
-            linkId: newLinkId,
-            goalId: newGoalId,
+            ...question,
           };
-        });
-      });
+        })
+      );
 
-      return Promise.all(promises);
+      const results = await promises;
+      return results;
     }),
 });

@@ -1,5 +1,12 @@
 // useAutoSave.ts
-import { type SetStateAction, useEffect, useMemo, type Dispatch } from "react";
+import {
+  type SetStateAction,
+  useEffect,
+  useMemo,
+  type Dispatch,
+  useCallback,
+  useState,
+} from "react";
 import { useAtom, type PrimitiveAtom } from "jotai";
 import debounce from "lodash/debounce";
 import { handleError } from "../utils/handleError";
@@ -40,40 +47,58 @@ export const useAutoSave = <TData extends { id: string }>({
     }
   }, [data?.id, remoteData, setData]);
 
+  const [debouncing, setDebouncing] = useState(false);
+
+  const doesNotNeedSaving = useMemo(() => {
+    if (equal(data, remoteData)) return true;
+
+    if (data && remoteData && shouldSave(remoteData, data)) {
+      return false;
+    } else {
+      return true;
+    }
+  }, [data, remoteData, shouldSave]);
+
   // Debounce the save function
   const debouncedSave = useMemo(
     () =>
       debounce((data: TData | undefined) => {
         if (!data) return;
-        saveFunction(data).catch(handleError);
+        saveFunction(data)
+          .catch(handleError)
+          .finally(() => {
+            setDebouncing(false);
+          });
       }, saveDebounce),
     [saveDebounce, saveFunction]
   );
 
-  const prevData = usePrevious(data);
-
-  const saved = useMemo(() => {
-    if (equal(data, prevData)) return true;
-
-    if (data && remoteData && shouldSave(remoteData, data)) {
-      return false;
-    }
-
-    return true;
-  }, [data, prevData, remoteData, shouldSave]);
-
   useEffect(() => {
-    if (!saved) {
+    if (!doesNotNeedSaving) {
+      setDebouncing(true);
       debouncedSave(data);
     }
-  }, [data, debouncedSave, saved]);
+  }, [data, debouncedSave, doesNotNeedSaving]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (debouncing) return;
+      if (!doesNotNeedSaving) {
+        debouncedSave.flush();
+      }
+    }, 10000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [debouncedSave, debouncing, doesNotNeedSaving]);
 
   return useMemo(() => {
     return {
-      saved,
+      saved: doesNotNeedSaving,
       save: () => {
         debouncedSave.flush();
       },
     };
-  }, [debouncedSave, saved]);
+  }, [debouncedSave, doesNotNeedSaving]);
 };

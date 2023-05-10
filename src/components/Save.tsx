@@ -11,7 +11,7 @@ export function Save() {
   const goalId = useQueryParam("goalId", "string");
   const [goal, setGoal] = useAtom(goalAtom);
 
-  const queryOutput = api.goal.get.useQuery(
+  const queryOutput = api.question.get.useQuery(
     { id: goalId ?? "" },
     {
       enabled: !!goalId,
@@ -19,8 +19,8 @@ export function Save() {
     }
   );
   const { mutateAsync: updateGoal, isLoading: saving } =
-    api.goal.update.useMutation({});
-  const { saved, save } = useAutoSave<RouterOutputs["goal"]["get"]>({
+    api.question.update.useMutation({});
+  const { saved, save } = useAutoSave<RouterOutputs["question"]["get"]>({
     remoteData: queryOutput.data,
     saveFunction: updateGoal,
     data: goal,

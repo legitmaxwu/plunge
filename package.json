@@ -7,7 +7,8 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "dbpush": "drizzle-kit push:mysql"
   },
   "dependencies": {
     "@clerk/nextjs": "^4.13.0",
@@ -44,6 +45,7 @@
     "class-variance-authority": "^0.5.3",
     "clsx": "^1.2.1",
     "cmdk": "^0.2.0",
+    "compromise": "^14.9.0",
     "diff": "^5.1.0",
     "dotenv": "^16.0.3",
     "drizzle-orm": "^0.25.3",
@@ -61,6 +63,7 @@
     "next": "^13.2.4",
     "next-remove-imports": "^1.0.11",
     "node-html-parser": "^6.1.5",
+    "pluralize": "^8.0.0",
     "react": "18.2.0",
     "react-diff-view": "^3.0.3",
     "react-dom": "18.2.0",
@@ -86,6 +89,7 @@
     "@types/jsdom": "^21.1.1",
     "@types/lodash": "^4.14.194",
     "@types/node": "^18.16.2",
+    "@types/pluralize": "^0.0.29",
     "@types/prettier": "^2.7.2",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.1",

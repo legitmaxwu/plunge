@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { type ReactNode } from "react";
+import { cn } from "../../utils";
 
 export interface SidePaddingProps {
   children: ReactNode;
@@ -13,14 +14,14 @@ export function SidePadding({
   innerClassName,
   as = "div",
 }: SidePaddingProps) {
-  const styles = clsx(
+  const styles = cn(
     {
       "w-full px-6 flex flex-col items-center": true,
     },
     className
   );
 
-  const innerStyles = clsx(
+  const innerStyles = cn(
     {
       "max-w-6xl w-full": true,
     },

@@ -1,11 +1,13 @@
 import { atom } from "jotai";
-import { atomWithStorage } from "jotai/utils";
+import { atomWithStorage, selectAtom, splitAtom } from "jotai/utils";
 import { type RouterOutputs } from "./api";
 import { LocalStorage, LocalStorageKey } from "./localstorage";
 
-export const goalAtom = atom<RouterOutputs["goal"]["get"] | undefined>(
+export const goalAtom = atom<RouterOutputs["question"]["get"] | undefined>(
   undefined
 );
+
+export const allQuestionsAtom = atom<RouterOutputs["question"]["get"][]>([]);
 
 export const newSubgoalAtom = atom<{
   parentGoalId: string;

@@ -2,11 +2,18 @@ import clsx from "clsx";
 import React, { type ButtonHTMLAttributes } from "react";
 import { LoaderIcon } from "react-hot-toast";
 
-export function Spinner() {
+type SpinnerProps = {
+  className?: string;
+};
+export function Spinner(props: SpinnerProps) {
+  const { className } = props;
   return (
     <svg
       role="status"
-      className="-ml-1.5 mr-1.5 inline h-3 w-3 animate-spin fill-gray-600 text-gray-200 dark:fill-gray-300 dark:text-gray-600"
+      className={clsx(
+        "inline h-3 w-3 animate-spin fill-gray-600 text-gray-200 dark:fill-gray-300 dark:text-gray-600",
+        className
+      )}
       viewBox="0 0 100 100"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -61,7 +68,7 @@ export const Button = React.forwardRef(
 
     return (
       <button className={styles} {...props}>
-        {loading && <Spinner />}
+        {loading && <Spinner className="-ml-1.5 mr-1.5" />}
         {children}
       </button>
     );

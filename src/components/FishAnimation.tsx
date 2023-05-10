@@ -1,8 +1,8 @@
+// @refresh reset
 /* eslint-disable @next/next/no-img-element */
 import React, { useCallback, useEffect, useState } from "react";
 import { motion, useAnimate } from "framer-motion";
 import { handleError } from "../utils/handleError";
-import { useAnimationControls } from "framer-motion";
 import clsx from "clsx";
 
 type Coordinates = { x: number; y: number };
@@ -115,14 +115,16 @@ const MovingFish: React.FC<MovingFishProps> = ({ src, initialPosition }) => {
   }, [animate, determineDirection, initialPosition, scope]);
 
   useEffect(() => {
-    initialize().catch(handleError);
+    initialize().catch(() => {
+      // Ignore
+    });
   }, [initialize]);
 
   return (
     <motion.div
       ref={scope}
       className={clsx({
-        "pointer-events-auto absolute h-auto w-16": true,
+        "absolute h-auto w-16": true,
       })}
       style={{
         transform: buildTransformString({
@@ -143,9 +145,17 @@ const MovingFish: React.FC<MovingFishProps> = ({ src, initialPosition }) => {
 };
 
 export const FishAnimation = () => {
+  const [fishies, setFishies] = useState<Coordinates[]>([]);
+  useEffect(() => {
+    setFishies(Array.from({ length: 32 }));
+    return () => {
+      setFishies([]);
+    };
+  }, []);
+
   return (
     <div className="pointer-events-none fixed left-0 top-0 h-screen w-full">
-      {Array.from({ length: 16 }, (_, i) => {
+      {fishies.map((_, i) => {
         return (
           <MovingFish
             key={i}

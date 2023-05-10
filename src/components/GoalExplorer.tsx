@@ -52,13 +52,13 @@ interface RenderGoalItemProps {
 function RenderGoalItem(props: RenderGoalItemProps) {
   const { goalId, parentGoalId } = props;
 
-  const journeyId = useQueryParam("journeyId", "string");
+  const plungeId = useQueryParam("plungeId", "string");
   const router = useRouter();
 
-  const { data: journey } = api.journey.get.useQuery({ id: journeyId ?? "" });
+  const { data: journey } = api.plunge.get.useQuery({ id: plungeId ?? "" });
 
   const [localGoal] = useAtom(goalAtom);
-  const { data: remoteGoal } = api.goal.get.useQuery(
+  const { data: remoteGoal } = api.question.get.useQuery(
     { id: goalId },
     { enabled: localGoal?.id !== goalId }
   );
@@ -66,8 +66,8 @@ function RenderGoalItem(props: RenderGoalItemProps) {
 
   const utils = api.useContext();
 
-  const { data: links } = api.link.getAllUnderGoal.useQuery({
-    parentGoalId: goalId,
+  const { data: links } = api.link.getAllUnderQuestion.useQuery({
+    parentQuestionId: goalId,
   });
 
   const paramGoalId = useQueryParam("goalId", "string");
@@ -88,17 +88,17 @@ function RenderGoalItem(props: RenderGoalItemProps) {
     toast
       .promise(
         createSubgoal({
-          parentGoalId: goalId,
-          goalTitles: [processed],
+          parentQuestionId: goalId,
+          questionTitles: [processed],
         }).then(async (res) => {
-          await utils.link.getAllUnderGoal.invalidate({
-            parentGoalId: goalId,
+          await utils.link.getAllUnderQuestion.invalidate({
+            parentQuestionId: goalId,
           });
           setNewGoal("");
           setAdding(false);
-          if (res[0] && journeyId) {
+          if (res[0] && plungeId) {
             router
-              .push(`/plunge/${journeyId}/goal/${res[0]?.goalId}`)
+              .push(`/plunge/${plungeId}/question/${res[0]?.goalId}`)
               .catch(handleError);
           }
         }),
@@ -113,13 +113,13 @@ function RenderGoalItem(props: RenderGoalItemProps) {
     newGoal,
     createSubgoal,
     goalId,
-    utils.link.getAllUnderGoal,
-    journeyId,
+    utils.link.getAllUnderQuestion,
+    plungeId,
     router,
   ]);
 
   // DELETING SUBGOALS
-  const { mutateAsync: deleteGoal } = api.goal.delete.useMutation({});
+  const { mutateAsync: deleteGoal } = api.question.delete.useMutation({});
 
   // REACT DND BELOW
   const sensors = useSensors(useSensor(PointerSensor));
@@ -131,12 +131,12 @@ function RenderGoalItem(props: RenderGoalItemProps) {
   const { mutateAsync: updateLexoRankIndex } = api.link.update.useMutation({
     onMutate: async ({ id, lexoRankIndex }) => {
       // Cancel outgoing fetches (so they don't overwrite our optimistic update)
-      const query = utils.link.getAllUnderGoal;
+      const query = utils.link.getAllUnderQuestion;
 
-      await query.cancel({ parentGoalId: goalId });
+      await query.cancel({ parentQuestionId: goalId });
 
       // Get the data from the queryCache
-      const prevData = query.getData({ parentGoalId: goalId });
+      const prevData = query.getData({ parentQuestionId: goalId });
 
       const newLinks = prevData;
       // ?.map((o) => {
@@ -159,7 +159,7 @@ function RenderGoalItem(props: RenderGoalItemProps) {
       //   }
       // }) ?? [];
 
-      query.setData({ parentGoalId: goalId }, (goal) => {
+      query.setData({ parentQuestionId: goalId }, (goal) => {
         if (!goal) return goal;
         return newLinks;
       });
@@ -168,15 +168,15 @@ function RenderGoalItem(props: RenderGoalItemProps) {
     },
     onError(err, newPost, ctx) {
       // If the mutation fails, use the context-value from onMutate
-      utils.link.getAllUnderGoal.setData(
-        { parentGoalId: goalId },
+      utils.link.getAllUnderQuestion.setData(
+        { parentQuestionId: goalId },
         ctx?.prevData
       );
     },
     onSettled() {
       // Sync with server once mutation has settled
-      utils.link.getAllUnderGoal
-        .invalidate({ parentGoalId: goalId })
+      utils.link.getAllUnderQuestion
+        .invalidate({ parentQuestionId: goalId })
         .catch(handleError);
     },
   });
@@ -300,7 +300,7 @@ function RenderGoalItem(props: RenderGoalItemProps) {
             e.stopPropagation();
             if (!goal || !journey) return;
             router
-              .push(`/plunge/${journey.id}/goal/${goal.id}`)
+              .push(`/plunge/${journey.id}/question/${goal.id}`)
               .catch(handleError);
           }}
         >
@@ -314,7 +314,7 @@ function RenderGoalItem(props: RenderGoalItemProps) {
                 e.stopPropagation();
                 if (!goal || !journey) return;
                 router
-                  .push(`/plunge/${journey.id}/goal/${goal.id}`)
+                  .push(`/plunge/${journey.id}/question/${goal.id}`)
                   .catch(handleError);
               }}
             >
@@ -352,8 +352,8 @@ function RenderGoalItem(props: RenderGoalItemProps) {
                         id: goalId,
                       }).then(async () => {
                         if (parentGoalId)
-                          await utils.link.getAllUnderGoal.invalidate({
-                            parentGoalId: parentGoalId,
+                          await utils.link.getAllUnderQuestion.invalidate({
+                            parentQuestionId: parentGoalId,
                           });
                       }),
                       {
@@ -461,14 +461,14 @@ function RenderGoalItem(props: RenderGoalItemProps) {
 }
 
 export function GoalExplorer() {
-  const journeyId = useQueryParam("journeyId", "string");
+  const plungeId = useQueryParam("plungeId", "string");
 
-  const { data } = api.journey.get.useQuery({ id: journeyId ?? "" });
+  const { data } = api.plunge.get.useQuery({ id: plungeId ?? "" });
 
   if (!data)
     return (
       <div className="w-1/2 animate-pulse rounded-sm bg-black/5">&nbsp;</div>
     );
 
-  return <RenderGoalItem goalId={data.goalId} />;
+  return <RenderGoalItem goalId={data.questionId} />;
 }

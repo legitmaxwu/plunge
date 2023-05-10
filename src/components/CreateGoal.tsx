@@ -145,7 +145,7 @@ function InitGoal(props: InitGoalProps) {
   const router = useRouter();
 
   const parentGoalId = useQueryParam("parentGoalId", "string");
-  const { data } = api.goal.get.useQuery(
+  const { data } = api.question.get.useQuery(
     { id: parentGoalId ?? "" },
     { enabled: !!parentGoalId }
   );
@@ -203,10 +203,6 @@ function RefineGoal(props: RefineGoalProps) {
   const [refineOptions, setRefineOptions] = useState<string[]>([]);
 
   const parentGoalId = useQueryParam("parentGoalId", "string");
-  const { data } = api.goal.get.useQuery(
-    { id: parentGoalId ?? "" },
-    { enabled: !!parentGoalId }
-  );
 
   const { getToken } = useAuth();
 
@@ -334,7 +330,7 @@ function FinalizeGoal(props: FinalizeGoalProps) {
 export function CreateGoal() {
   const router = useRouter();
   const [state, send] = useMachine(createGoalMachine);
-  const { mutateAsync } = api.journey.create.useMutation();
+  const { mutateAsync } = api.plunge.create.useMutation();
 
   const parentGoalId = useQueryParam("parentGoalId", "string");
   const addChild = useStackStore((state) => state.addChild);
@@ -376,7 +372,7 @@ export function CreateGoal() {
                   init(res.id);
                 }
                 router
-                  .push(`/plunge/${res.id}/goal/${res.goalId}`)
+                  .push(`/plunge/${res.id}/question/${res.goalId}`)
                   .catch(handleError);
               })
               .catch(handleError);
