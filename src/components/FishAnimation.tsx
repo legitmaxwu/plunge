@@ -1,12 +1,14 @@
 // @refresh reset
 /* eslint-disable @next/next/no-img-element */
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, useAnimate } from "framer-motion";
 import { handleError } from "../utils/handleError";
 import clsx from "clsx";
 import mobile from "is-mobile";
+import { throttle } from "lodash";
 
 type Coordinates = { x: number; y: number };
+
 const fishGifs = [
   "/fish/fish-nemo.gif",
   "/fish/fish-dory.gif",
@@ -14,7 +16,7 @@ const fishGifs = [
   "/fish/fish-yellow.gif",
 ];
 
-const randomPosition = () => ({
+const getRandomPosition = () => ({
   x: Math.random() * 100,
   y: Math.random() * 100,
 });
@@ -53,7 +55,7 @@ interface MovingFishProps {
 }
 
 const MovingFish: React.FC<MovingFishProps> = ({ src, initialPosition }) => {
-  const [scope, animate] = useAnimate();
+  const [scope, animate] = useAnimate<HTMLDivElement>();
 
   const [direction, setDirection] = useState<"left" | "right">("right");
 
@@ -68,43 +70,30 @@ const MovingFish: React.FC<MovingFishProps> = ({ src, initialPosition }) => {
     []
   );
 
-  const initialize = useCallback(async () => {
-    // await animate({
-    //   x: `${initialPosition.x}vw`,
-    //   y: `${initialPosition.y}vh`,
-    // });
-    let pointA = initialPosition;
-    let pointB = randomNextPositionFrom(pointA);
-    determineDirection(pointA, pointB);
+  const travel = useCallback(
+    async (recurse = false, speed = 1) => {
+      const { x, y } = scope.current.getBoundingClientRect();
+      const xVw = (x / window.innerWidth) * 100;
+      const yVh = (y / window.innerHeight) * 100;
+      const startPosition = { x: xVw, y: yVh };
+      const endPosition = randomNextPositionFrom(startPosition);
 
-    // 50% chance to wait before starting
-    // const wait = Math.random() > 0.5;
-    // if (wait) {
-    //   const randomPauseTime = Math.random() * 1000;
-    //   await new Promise((resolve) => {
-    //     setTimeout(resolve, randomPauseTime);
-    //   });
-    // }
+      determineDirection(startPosition, endPosition);
 
-    while (true) {
-      // Wait random amount of time
-      // Random time between 0 and 2 seconds
+      const distance = calculateDistance(startPosition, endPosition);
 
-      const distance = calculateDistance(pointA, pointB);
-
-      const animationTimeMs = distance * 500;
-
-      const endEarlyMs = (Math.random() / 30) * animationTimeMs;
+      const animationTimeMs = (distance * 400) / speed;
 
       // await new Promise((resolve) => {
       //   setTimeout(resolve, pauseTimeMs);
       // });
+      animate(scope.current, {}).cancel();
       await animate(
         scope.current,
         {
           transform: buildTransformString({
-            x: pointB.x,
-            y: pointB.y,
+            x: endPosition.x,
+            y: endPosition.y,
           }),
         },
         {
@@ -113,36 +102,56 @@ const MovingFish: React.FC<MovingFishProps> = ({ src, initialPosition }) => {
         }
       );
 
+      if (recurse) {
+        travel(true).catch(() => {
+          // Ignore
+        });
+      }
       // await new Promise((resolve) => {
       //   setTimeout(resolve, animationTimeMs - endEarlyMs);
       // });
 
-      animate(scope.current, {}).cancel();
+      // animate(scope.current, {}).cancel();
 
-      pointA = pointB;
-      pointB = randomNextPositionFrom(pointA);
-      determineDirection(pointA, pointB);
-    }
-  }, [animate, determineDirection, initialPosition, scope]);
+      // pointA = pointB;
+      // pointB = randomNextPositionFrom(pointA);
+      // determineDirection(pointA, pointB);
+    },
+    [animate, determineDirection, scope]
+  );
+
+  const throttledTravel = useMemo(
+    () => throttle(travel, 1000, { trailing: true }),
+    [travel]
+  );
+
+  // Every random interval, move the fish to a new position
 
   useEffect(() => {
-    initialize().catch(() => {
+    travel?.(true)?.catch(() => {
       // Ignore
     });
-  }, [initialize]);
+  }, [travel]);
+
+  const handleHover = useCallback(() => {
+    throttledTravel?.(false, 5)?.catch(() => {
+      // Ignore
+    });
+  }, [throttledTravel]);
 
   return (
     <motion.div
+      onMouseEnter={handleHover}
       ref={scope}
-      className={clsx({
-        "absolute h-auto w-16": true,
-      })}
-      style={{
+      initial={{
         transform: buildTransformString({
           x: initialPosition.x,
           y: initialPosition.y,
         }),
       }}
+      className={clsx({
+        "pointer-events-auto absolute h-auto w-16": true,
+      })}
     >
       <img
         src={src}
@@ -162,7 +171,7 @@ type InitialFish = {
 
 function generateNFish(n: number) {
   return Array.from({ length: n }).map((_, idx) => ({
-    initialPosition: randomPosition(),
+    initialPosition: getRandomPosition(),
     src: fishGifs[idx % fishGifs.length] ?? "",
   }));
 }
@@ -171,11 +180,12 @@ export const FishAnimation = () => {
   const [fishies, setFishies] = useState<InitialFish[]>([]);
 
   useEffect(() => {
-    setFishies(generateNFish(mobile() ? 8 : 24));
+    // setFishies(generateNFish(mobile() ? 8 : 24));
+    setFishies(generateNFish(16));
   }, []);
 
   return (
-    <div className="pointer-events-none fixed left-0 top-0 h-[calc(100dvh)] w-full">
+    <div className="pointer-events-none absolute left-0 top-0 h-[calc(100dvh)] w-full overflow-hidden">
       {fishies.map((fish, i) => {
         return (
           <MovingFish
