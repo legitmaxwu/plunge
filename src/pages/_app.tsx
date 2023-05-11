@@ -15,9 +15,7 @@ import {
 import { useRouter } from "next/router";
 import { Toaster } from "react-hot-toast";
 import Head from "next/head";
-import { useMediaQuery } from "../hooks/useMediaQuery";
 import { TooltipProvider } from "../components/base/Tooltip";
-import ReactPlayer from "react-player";
 
 const RenderComponent: AppType = (props) => {
   const { Component, pageProps } = props;
@@ -30,19 +28,12 @@ const RenderComponent: AppType = (props) => {
   return <Component {...pageProps} />;
 };
 
-const publicPages = ["/"];
+const publicPages = ["/", "/sso-callback"];
 
 const MyApp: AppType = (props) => {
   const { Component, pageProps } = props;
 
   const { pathname } = useRouter();
-
-  const show = useMediaQuery(
-    {
-      showIfBiggerThan: "md",
-    },
-    true
-  );
 
   // Check if the current route matches a public page
   const isPublicPage = publicPages.includes(pathname);
@@ -73,18 +64,16 @@ const MyApp: AppType = (props) => {
       </Head>
       <TooltipProvider delayDuration={0}>
         <ClerkProvider {...pageProps}>
-          {isPublicPage ? (
+          <SignedIn>
             <RenderComponent {...props} />
-          ) : (
-            <>
-              <SignedIn>
-                <RenderComponent {...props} />
-              </SignedIn>
-              <SignedOut>
-                <RedirectToSignIn redirectUrl={"/"} />
-              </SignedOut>
-            </>
-          )}
+          </SignedIn>
+          <SignedOut>
+            {isPublicPage ? (
+              <RenderComponent {...props} />
+            ) : (
+              <RedirectToSignIn redirectUrl={"/"} />
+            )}
+          </SignedOut>
           <Toaster />
         </ClerkProvider>
       </TooltipProvider>

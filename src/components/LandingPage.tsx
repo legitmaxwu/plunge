@@ -4,7 +4,7 @@
 import React from "react";
 import Head from "next/head";
 import { Button } from "./base/Button";
-import { SignIn, useClerk, useSignIn, useUser } from "@clerk/nextjs";
+import { SignIn, useClerk, useSignIn, useSignUp, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/router";
 import ReactPlayer from "react-player";
 import { handleError } from "../utils/handleError";
@@ -16,7 +16,7 @@ const LandingPage = () => {
 
   const router = useRouter();
   const { signIn } = useSignIn();
-  const clerk = useClerk();
+
   return (
     <div className="flex h-[calc(100dvh)] flex-col items-center bg-gradient-to-r from-gray-200 via-sky-300 to-blue-300">
       <div className="flex h-full flex-col items-center justify-center px-4 text-center">
@@ -25,12 +25,12 @@ const LandingPage = () => {
         <div className="h-12"></div>
         <button
           className="flex items-center gap-4 rounded-md bg-white/70 px-12 py-4 text-lg transition hover:bg-white"
-          onClick={() => {
+          onClick={(e) => {
             signIn
               ?.authenticateWithRedirect({
+                strategy: "oauth_google" as const,
                 redirectUrl: "/sso-callback",
                 redirectUrlComplete: "/",
-                strategy: "oauth_google" as const,
               })
               .catch(handleError);
           }}

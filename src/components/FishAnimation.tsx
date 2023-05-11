@@ -113,7 +113,6 @@ const MovingFish: React.FC<MovingFishProps> = ({ src, initialPosition }) => {
         }
       );
 
-      console.log("Lmfao");
       // await new Promise((resolve) => {
       //   setTimeout(resolve, animationTimeMs - endEarlyMs);
       // });
