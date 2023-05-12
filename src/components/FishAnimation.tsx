@@ -180,8 +180,8 @@ export const FishAnimation = () => {
   const [fishies, setFishies] = useState<InitialFish[]>([]);
 
   useEffect(() => {
-    // setFishies(generateNFish(mobile() ? 8 : 24));
-    setFishies(generateNFish(16));
+    setFishies(generateNFish(mobile() ? 8 : 24));
+    // setFishies(generateNFish(16));
   }, []);
 
   return (
