@@ -15,6 +15,7 @@ import { Fade } from "./animate/Fade";
 import { useChatCompletion } from "../hooks/useChatCompletion";
 import { useAtom } from "jotai";
 import { loadingAiAtom } from "../utils/jotai";
+import { QUESTIONS } from "../utils/questions";
 
 interface TypingAnimationProps {
   text: string;
@@ -177,14 +178,29 @@ function InitGoal(props: InitGoalProps) {
       />
       <div className="h-8"></div>
       <div className="flex items-center gap-2">
-        {/* <Button
+        <Button
           variant="ghost"
           onClick={() => {
-            router.back();
+            // Pick a random question
+            const randomIndex = Math.floor(Math.random() * QUESTIONS.length);
+            const randomQuestion = QUESTIONS[randomIndex];
+            if (!randomQuestion) {
+              return;
+            }
+            if (randomQuestion === goal) {
+              const nextRandomIndex = (randomIndex + 1) % QUESTIONS.length;
+              const nextRandomQuestion = QUESTIONS[nextRandomIndex];
+              if (!nextRandomQuestion) {
+                return;
+              }
+              setGoal(nextRandomQuestion);
+            } else {
+              setGoal(randomQuestion);
+            }
           }}
         >
-          Back
-        </Button> */}
+          {"I'm Feeling Lucky"}
+        </Button>
         <Button
           disabled={!goal}
           onClick={() => {

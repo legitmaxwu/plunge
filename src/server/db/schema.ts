@@ -2,12 +2,14 @@
 import { type InferModel, sql } from "drizzle-orm";
 import {
   mysqlEnum,
-  mysqlTable,
+  mysqlTableCreator,
   text,
   timestamp,
   uniqueIndex,
   varchar,
 } from "drizzle-orm/mysql-core";
+
+const mysqlTable = mysqlTableCreator((name) => `plunge_${name}`);
 
 export const questions = mysqlTable("questions", {
   id: varchar("id", { length: 191 }).primaryKey(),
