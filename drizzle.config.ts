@@ -8,4 +8,5 @@ export default {
   }@${process.env.DATABASE_HOST ?? ""}/${
     process.env.DATABASE_NAME ?? ""
   }?ssl={"rejectUnauthorized":true}`,
+  tablesFilter: ["plunge_*"],
 } satisfies Config;

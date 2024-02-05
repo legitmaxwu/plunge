@@ -7,6 +7,15 @@ import { alias } from "drizzle-orm/mysql-core";
 export const questionRouter = createTRPCRouter({
   getAll: authenticatedProcedure.query(({ ctx }) => {
     const userId = ctx.auth.userId;
+    console.log("Lol");
+    console.log(
+      ctx.db
+        .select()
+        .from(questions)
+        .where(eq(questions.userId, userId))
+        .toSQL()
+    );
+    console.log("Lmao");
     return ctx.db.select().from(questions).where(eq(questions.userId, userId));
   }),
   get: authenticatedProcedure
@@ -19,6 +28,7 @@ export const questionRouter = createTRPCRouter({
       const nestedLinks = alias(links, "childLinks");
 
       const userId = ctx.auth.userId;
+
       const results = await ctx.db
         .select()
         .from(questions)
