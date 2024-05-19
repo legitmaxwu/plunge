@@ -48,7 +48,6 @@ export const api = createTRPCNext<CollectiveRouter>({
             const topLevelRoute = op.path.split(".")[0];
 
             if (!topLevelRoute) return false;
-
             const functionRoutes = ["public"];
             return functionRoutes.includes(topLevelRoute);
           },

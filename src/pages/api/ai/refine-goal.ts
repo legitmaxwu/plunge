@@ -68,7 +68,7 @@ const handler = async (req: NextRequest): Promise<Response> => {
       },
     ],
     {
-      model: "gpt-4",
+      model: "gpt-4o",
       temperature: 0,
       max_tokens: 1000,
     }

@@ -2,7 +2,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { authenticatedProcedure, createTRPCRouter } from "~/server/api/trpc";
 import { questions, links, type Question } from "../../db/schema";
-import { alias } from "drizzle-orm/mysql-core";
+import { alias } from "drizzle-orm/pg-core";
 
 export const questionRouter = createTRPCRouter({
   getAll: authenticatedProcedure.query(({ ctx }) => {

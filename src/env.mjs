@@ -7,10 +7,12 @@ import { z } from "zod";
 const server = z.object({
   OPENAI_API_KEY: z.string().min(1),
   NODE_ENV: z.enum(["development", "test", "production"]),
-  DATABASE_HOST: z.string().min(1),
-  DATABASE_USERNAME: z.string().min(1),
-  DATABASE_PASSWORD: z.string().min(1),
-  DATABASE_NAME: z.string().min(1),
+  // DATABASE_HOST: z.string().min(1),
+  // DATABASE_USERNAME: z.string().min(1),
+  // DATABASE_PASSWORD: z.string().min(1),
+  // DATABASE_NAME: z.string().min(1),
+
+  POSTGRES_URL: z.string().min(1),
 });
 
 /**
@@ -30,10 +32,11 @@ const client = z.object({
 const processEnv = {
   OPENAI_API_KEY: process.env.OPENAI_API_KEY,
   NODE_ENV: process.env.NODE_ENV,
-  DATABASE_HOST: process.env.DATABASE_HOST,
-  DATABASE_USERNAME: process.env.DATABASE_USERNAME,
-  DATABASE_PASSWORD: process.env.DATABASE_PASSWORD,
-  DATABASE_NAME: process.env.DATABASE_NAME,
+  POSTGRES_URL: process.env.POSTGRES_URL,
+  // DATABASE_HOST: process.env.DATABASE_HOST,
+  // DATABASE_USERNAME: process.env.DATABASE_USERNAME,
+  // DATABASE_PASSWORD: process.env.DATABASE_PASSWORD,
+  // DATABASE_NAME: process.env.DATABASE_NAME,
   // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
 };
 

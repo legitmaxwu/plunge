@@ -1,36 +1,34 @@
 // db.ts
-import { type InferModel, sql } from "drizzle-orm";
+import { type InferSelectModel, sql } from "drizzle-orm";
 import {
-  mysqlEnum,
-  mysqlTableCreator,
+  pgEnum,
+  pgTableCreator,
   text,
   timestamp,
   uniqueIndex,
   varchar,
-} from "drizzle-orm/mysql-core";
+} from "drizzle-orm/pg-core";
 
-const mysqlTable = mysqlTableCreator((name) => `plunge_${name}`);
+const pgTable = pgTableCreator((name) => `plunge_${name}`);
 
-export const questions = mysqlTable("questions", {
+export const questionTypeEnum = pgEnum("question_type", ["CUSTOM", "DOCUMENT"]);
+
+export const questions = pgTable("questions", {
   id: varchar("id", { length: 191 }).primaryKey(),
-  type: mysqlEnum("type", ["CUSTOM", "DOCUMENT"]),
-  createdAt: timestamp("createdAt", { fsp: 2 })
-    .notNull()
-    .default(sql`(now(2))`),
+  type: questionTypeEnum("question_type"),
+  createdAt: timestamp("createdAt", { precision: 3 }).notNull().defaultNow(),
   userId: varchar("userId", { length: 191 }).notNull(),
   title: text("title").notNull(),
   guideMarkdown: text("guideMarkdown"),
 });
 
-export type Question = InferModel<typeof questions>;
+export type Question = InferSelectModel<typeof questions>;
 
-export const links = mysqlTable(
+export const links = pgTable(
   "links",
   {
     id: varchar("id", { length: 191 }).primaryKey(),
-    createdAt: timestamp("createdAt", { fsp: 2 })
-      .notNull()
-      .default(sql`(now(2))`),
+    createdAt: timestamp("createdAt", { precision: 3 }).notNull().defaultNow(),
     lexoRankIndex: varchar("lexoRankIndex", { length: 191 }).notNull(),
     parentId: varchar("parentId", { length: 191 }).notNull(),
     childId: varchar("childId", { length: 191 }).notNull(),
@@ -51,13 +49,11 @@ export const links = mysqlTable(
   })
 );
 
-export const plunges = mysqlTable(
+export const plunges = pgTable(
   "plunges",
   {
     id: varchar("id", { length: 191 }).primaryKey(),
-    createdAt: timestamp("createdAt", { fsp: 2 })
-      .notNull()
-      .default(sql`(now(2))`),
+    createdAt: timestamp("createdAt", { precision: 3 }).notNull().defaultNow(),
     questionId: varchar("questionId", { length: 191 }).notNull(),
     userId: varchar("userId", { length: 191 }).notNull(),
   },

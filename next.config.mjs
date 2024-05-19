@@ -9,6 +9,16 @@ import { next } from "million/compiler";
 const config = {
   reactStrictMode: true,
 
+  // webpack: (config, { webpack }) => {
+  //   config.plugins.push(
+  //     new webpack.IgnorePlugin({
+  //       resourceRegExp: /^pg-native$|^cloudflare:sockets$/,
+  //     })
+  //   );
+
+  //   return config;
+  // },
+
   /**
    * If you have the "experimental: { appDir: true }" setting enabled, then you
    * must comment the below `i18n` config out.

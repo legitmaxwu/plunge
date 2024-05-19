@@ -310,7 +310,7 @@ function AddQuestion(props: AddQuestionProps) {
 
   const nextQuestionId = allQuestions[index + 1]?.id;
 
-  const utils = api.useContext();
+  const utils = api.useUtils();
 
   const { mutateAsync: createQuestion, isLoading: loadingCreateQuestion } =
     api.link.createChildren.useMutation({
@@ -471,7 +471,7 @@ function AddQuestion(props: AddQuestionProps) {
 const GoalPage: NextPage = () => {
   const questionId = useQueryParam("questionId", "string");
   const plungeId = useQueryParam("plungeId", "string");
-  const utils = api.useContext();
+  const utils = api.useUtils();
   const [allQuestions, setAllQuestions] = useAtom(allQuestionsAtom);
   api.question.getQuestionPath.useQuery(
     { topQuestionId: questionId ?? "" },
